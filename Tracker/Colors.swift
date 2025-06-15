@@ -21,6 +21,7 @@ enum Colors {
     static let red = UIColor(named: "YP Red")
     static let whiteDay = UIColor(named: "YP White [day]")
     static let whiteNight = UIColor(named: "YP White [night]")
+    static let searchFieldBackground = UIColor(named: "SearchFieldBackground")
+    static let searchTextColor = UIColor(named: "SearchTextColor")
+    static let datePickerBackground = UIColor(named: "DatePickerBackground")
 }
-
-

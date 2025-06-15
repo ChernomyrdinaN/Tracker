@@ -18,7 +18,7 @@ class TrackersViewController: UIViewController {
     
     private lazy var addButton: UIButton = {
         let button = UIButton()
-        button.setImage(UIImage(named: "addtracker"), for: .normal)
+        button.setImage(UIImage(named: "add_tracker"), for: .normal)
         button.tintColor = Colors.blackNight
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
@@ -29,7 +29,7 @@ class TrackersViewController: UIViewController {
         button.setTitle("14.12.22", for: .normal) // DateFormatter
         button.titleLabel?.font  = UIFont.systemFont(ofSize: 17, weight: .regular)
         button.setTitleColor(Colors.blackDay, for: .normal)
-        button.backgroundColor = UIColor(red: 0.94, green: 0.94, blue: 0.94, alpha: 1) // #F0F0F0 уточнить
+        button.backgroundColor = Colors.datePickerBackground // #F0F0F0
         button.layer.cornerRadius = 8
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
@@ -44,36 +44,51 @@ class TrackersViewController: UIViewController {
         return label
     }()
     
-    private lazy var searchField: UISearchBar = {
-        let searchBar = UISearchBar()
-        searchBar.searchBarStyle = .minimal
-        searchBar.translatesAutoresizingMaskIntoConstraints = false
+    private lazy var searchField: UITextField = {
+        let textField = UITextField()
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.backgroundColor = Colors.searchFieldBackground
+        textField.textColor = Colors.searchTextColor
+        textField.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        textField.layer.cornerRadius = 10
+        textField.layer.masksToBounds = true
         
-        // Установка иконки лупы
-        searchBar.setImage(UIImage(named: "mangnifyingglass"), for: .search, state: .normal)
+        // Добавляем иконку лупы
+        let iconView = UIImageView(image: UIImage(systemName: "magnifyingglass"))
+        iconView.tintColor = Colors.searchTextColor
+        textField.leftView = iconView
+        textField.leftViewMode = .always
         
-        // Настройка текстового поля
-        if let textField = searchBar.value(forKey: "searchField") as? UITextField {
-            // Основные настройки
-            textField.backgroundColor = UIColor(named: "#7676803D") // #7676803D из Assets
-            textField.textColor = UIColor(named: "#EBEBF5") // #EBEBF5 из Assets
-            textField.font = UIFont.systemFont(ofSize: 17, weight: .regular)
-            textField.layer.cornerRadius = 10
-            textField.clipsToBounds = true
-            
-            // Настройка placeholder
-            textField.attributedPlaceholder = NSAttributedString(
-                string: "Поиск",
-                attributes: [
-                    .foregroundColor: UIColor(named: "#EBEBF5") ?? .gray, // #EBEBF5 из Assets
-                    .font: UIFont.systemFont(ofSize: 17, weight: .regular)
-                ]
-            )
-        }
+        // Placeholder
+        textField.attributedPlaceholder = NSAttributedString(
+            string: "Поиск",
+            attributes: [
+                .foregroundColor: Colors.searchTextColor ?? .lightGray,
+                .font: UIFont.systemFont(ofSize: 17, weight: .regular)
+            ]
+        )
         
-        return searchBar
-
+        return textField
     }()
+    
+    private lazy var errorImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(named: "ilerror1")
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+    
+    private lazy var trackLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Что будем отслеживать?"
+        label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
+        label.textColor = Colors.blackNight
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -87,6 +102,8 @@ class TrackersViewController: UIViewController {
         mainView.addSubview(addButton)
         mainView.addSubview(titleLabel)
         mainView.addSubview(searchField)
+        mainView.addSubview(errorImageView)
+        mainView.addSubview(trackLabel)
     }
     
     private func setupConstraints() {
@@ -116,6 +133,16 @@ class TrackersViewController: UIViewController {
             mainView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            errorImageView.topAnchor.constraint(equalTo: view.topAnchor, constant: 402),
+            errorImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 147),
+            errorImageView.widthAnchor.constraint(equalToConstant: 80),
+            errorImageView.heightAnchor.constraint(equalToConstant: 80),
+            
+            trackLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 490),
+            trackLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            trackLabel.widthAnchor.constraint(equalToConstant: 343),
+            trackLabel.heightAnchor.constraint(equalToConstant: 18)
             
         ])
     }
