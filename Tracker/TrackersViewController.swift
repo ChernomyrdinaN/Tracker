@@ -4,16 +4,6 @@
 //
 //  Created by Наталья Черномырдина on 14.06.2025.
 //
-
-import UIKit
-
-//
-//  TrackersViewController.swift
-//  Tracker
-//
-//  Created by Наталья Черномырдина on 14.06.2025.
-//
-
 import UIKit
 
 final class TrackersViewController: UIViewController {
@@ -26,13 +16,20 @@ final class TrackersViewController: UIViewController {
     private let searchField = UITextField()
     private let errorImageView = UIImageView()
     private let trackLabel = UILabel()
+    private var isEmptyState = false {
+        didSet {
+            errorImageView.isHidden = !isEmptyState
+            trackLabel.isHidden = !isEmptyState
+        }
+    }
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        checkTrackers()
     }
-  
+    
     // MARK: - UI Setup
     private func setupUI() {
         view.backgroundColor = Colors.whiteNight
@@ -72,11 +69,13 @@ final class TrackersViewController: UIViewController {
         )
         
         errorImageView.image = UIImage(named: "ilerror1")
+        errorImageView.isHidden = true
         
         trackLabel.text = "Что будем отслеживать?"
         trackLabel.font = .systemFont(ofSize: 12, weight: .medium)
         trackLabel.textColor = Colors.blackNight
         trackLabel.textAlignment = .center
+        trackLabel.isHidden = true
         
         [mainView, addButton, dateButton, titleLabel,
          searchField, errorImageView, trackLabel].forEach {
@@ -127,5 +126,12 @@ final class TrackersViewController: UIViewController {
             trackLabel.topAnchor.constraint(equalTo: errorImageView.bottomAnchor, constant: 8),
             trackLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
+    }
+    
+    private func checkTrackers() {
+        // Пока отсутствует логика можно проверить так:
+        let testTrackers: [String] = [] // заглушка появится
+        //let testTrackers = ["Трекер 1", "Трекер 2"] // заглушка исчезнет
+        isEmptyState = testTrackers.isEmpty
     }
 }
