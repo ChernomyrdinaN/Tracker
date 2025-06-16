@@ -16,7 +16,7 @@ import UIKit
 
 import UIKit
 
-class TrackersViewController: UIViewController {
+final class TrackersViewController: UIViewController {
     
     // MARK: - UI Elements
     private let mainView = UIView()
