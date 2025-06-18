@@ -4,6 +4,7 @@
 //
 //  Created by Наталья Черномырдина on 14.06.2025.
 //
+
 import UIKit
 
 final class TrackersViewController: UIViewController {
@@ -23,6 +24,9 @@ final class TrackersViewController: UIViewController {
         }
     }
     
+    private var categories: [TrackerCategory] = []  // Храним категории с трекерами
+    private var completedTrackers: [TrackerRecord] = [] // Храним выполненные трекеры
+    private var currentDate = Date() // Текущая выбранная дата
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -134,4 +138,58 @@ final class TrackersViewController: UIViewController {
         //let testTrackers = ["Трекер 1", "Трекер 2"] // заглушка исчезнет
         isEmptyState = testTrackers.isEmpty
     }
-}
+    
+    // MARK: - Работа с выполнением трекеров
+       private func trackerCompleted(_ trackerId: UUID) {  // Добавляем запись о выполнении
+           let record = TrackerRecord(trackerId: trackerId, date: currentDate)
+           completedTrackers.append(record)
+       }
+       
+       private func trackerUncompleted(_ trackerId: UUID) { // Удаляем запись, отмена выполнения трекера
+           completedTrackers.removeAll { $0.trackerId == trackerId && Calendar.current.isDate($0.date, inSameDayAs: currentDate) }
+       }
+      
+       private func isTrackerCompleted(_ trackerId: UUID) -> Bool { // Проверяем выполнен ли трекер сегодня
+           completedTrackers.contains { $0.trackerId == trackerId && Calendar.current.isDate($0.date, inSameDayAs: currentDate) }
+       }
+       
+       // MARK: - Работа с категориями
+       private func addTracker(_ tracker: Tracker, toCategoryWithId categoryId: UUID) { // Добавляем новый трекер в категорию
+           var newCategories = categories.map { category in
+               if category.id == categoryId {
+                   var newTrackers = category.trackers
+                   newTrackers.append(tracker)
+                   return TrackerCategory(
+                       id: category.id,
+                       title: category.title,
+                       trackers: newTrackers
+                   )
+               }
+               return category
+           }
+           
+           if !newCategories.contains(where: { $0.id == categoryId }) { // если категории с таким id нет, создаем новую
+               let newCategory = TrackerCategory(
+                   id: categoryId,
+                   title: "Новая категория",
+                   trackers: [tracker]
+               )
+               newCategories.append(newCategory)
+           }
+           
+           categories = newCategories
+       }
+    
+       private func updateCategoryTitle(_ newTitle: String, forCategoryId categoryId: UUID) { // Меняем название категории
+           categories = categories.map { category in
+               if category.id == categoryId {
+                   return TrackerCategory(
+                       id: category.id,
+                       title: newTitle,
+                       trackers: category.trackers
+                   )
+               }
+               return category
+           }
+       }
+   }
