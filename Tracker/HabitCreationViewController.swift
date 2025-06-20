@@ -5,13 +5,6 @@
 //  Created by Наталья Черномырдина on 19.06.2025.
 //
 
-//
-//  HabitCreationViewController.swift
-//  Tracker
-//
-//  Created by Наталья Черномырдина on 19.06.2025.
-//
-
 import UIKit
 
 final class HabitCreationViewController: UIViewController {
@@ -20,10 +13,11 @@ final class HabitCreationViewController: UIViewController {
     private let mainView = UIView()
     private let titleLabel = UILabel()
     private let nameTextField = UITextField()
-    private let categoryButton = UIButton()
-    private let scheduleButton = UIButton()
+    private let tableView = UITableView()
     private let cancelButton = UIButton()
     private let createButton = UIButton()
+    
+    private let options = ["Категория", "Расписание"]
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -34,65 +28,57 @@ final class HabitCreationViewController: UIViewController {
     
     // MARK: - UI Setup
     private func setupUI() {
-        view.backgroundColor = .systemBackground
-        mainView.backgroundColor = .systemBackground
+        view.backgroundColor = Colors.whiteNight
+        mainView.backgroundColor = Colors.whiteDay
         
         // Настройка заголовка
         titleLabel.text = "Новая привычка"
         titleLabel.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        titleLabel.textColor = Colors.blackDay
         titleLabel.textAlignment = .center
         
         // Настройка поля ввода
         nameTextField.placeholder = "Введите название трекера"
-        nameTextField.backgroundColor = Colors.backgroundNight
+        nameTextField.backgroundColor = Colors.backgroundDay
+        nameTextField.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        nameTextField.textColor = Colors.blackDay
         nameTextField.layer.cornerRadius = 16
-        nameTextField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 50))
+        nameTextField.layer.masksToBounds = true
+        let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 75))
+        nameTextField.leftView = paddingView
         nameTextField.leftViewMode = .always
-        nameTextField.clearButtonMode = .whileEditing
         
-        // Настройка кнопок
-        configureButton(button: categoryButton, title: "Категория")
-        configureButton(button: scheduleButton, title: "Расписание")
+        // Настройка таблицы
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.isScrollEnabled = false
+        tableView.layer.cornerRadius = 16
+        tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         
+        // Настройка кнопки "Отменить"
         cancelButton.setTitle("Отменить", for: .normal)
-        cancelButton.setTitleColor(.red, for: .normal)
         cancelButton.backgroundColor = .clear
+        cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        cancelButton.setTitleColor(Colors.red, for: .normal)
         cancelButton.layer.borderWidth = 1
-        cancelButton.layer.borderColor = UIColor.red.cgColor
+        cancelButton.layer.borderColor = Colors.red?.cgColor
         cancelButton.layer.cornerRadius = 16
         cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
         
+        // Настройка кнопки "Создать"
         createButton.setTitle("Создать", for: .normal)
-        createButton.setTitleColor(.white, for: .normal)
-        createButton.backgroundColor = .gray
+        createButton.backgroundColor = Colors.gray
+        createButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        createButton.setTitleColor(Colors.whiteDay, for: .normal)
         createButton.isEnabled = false
         createButton.layer.cornerRadius = 16
         createButton.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
         
-        [mainView, titleLabel, nameTextField, categoryButton,
-         scheduleButton, cancelButton, createButton].forEach {
+        [mainView, titleLabel, nameTextField, tableView, cancelButton, createButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
-    }
-    
-    private func configureButton(button: UIButton, title: String) {
-        button.setTitle(title, for: .normal)
-        button.setTitleColor(.black, for: .normal)
-        button.contentHorizontalAlignment = .left
-        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 0)
-        button.backgroundColor = Colors.backgroundNight
-        button.layer.cornerRadius = 16
-        
-        let arrowImageView = UIImageView(image: UIImage(systemName: "chevron.right"))
-        arrowImageView.tintColor = .gray
-        arrowImageView.translatesAutoresizingMaskIntoConstraints = false
-        button.addSubview(arrowImageView)
-        
-        NSLayoutConstraint.activate([
-            arrowImageView.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -16),
-            arrowImageView.centerYAnchor.constraint(equalTo: button.centerYAnchor)
-        ])
     }
     
     private func setupConstraints() {
@@ -113,17 +99,11 @@ final class HabitCreationViewController: UIViewController {
             nameTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             nameTextField.heightAnchor.constraint(equalToConstant: 75),
             
-            // Кнопка категории
-            categoryButton.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 24),
-            categoryButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            categoryButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            categoryButton.heightAnchor.constraint(equalToConstant: 75),
-            
-            // Кнопка расписания
-            scheduleButton.topAnchor.constraint(equalTo: categoryButton.bottomAnchor, constant: 16),
-            scheduleButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            scheduleButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            scheduleButton.heightAnchor.constraint(equalToConstant: 75),
+            // Таблица с кнопками
+            tableView.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 24),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            tableView.heightAnchor.constraint(equalToConstant: 150),
             
             // Кнопка отмены
             cancelButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
@@ -146,5 +126,44 @@ final class HabitCreationViewController: UIViewController {
     
     @objc private func createButtonTapped() {
         dismiss(animated: true)
+    }
+}
+
+// MARK: - UITableViewDataSource
+extension HabitCreationViewController: UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return options.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        cell.backgroundColor = Colors.backgroundDay
+        cell.textLabel?.text = options[indexPath.row]
+        cell.textLabel?.textColor = Colors.blackDay
+        cell.accessoryType = .disclosureIndicator
+        cell.selectionStyle = .none
+        
+        return cell
+    }
+}
+
+// MARK: - UITableViewDelegate
+extension HabitCreationViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 75
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        // Обработка нажатия на ячейку
+        switch indexPath.row {
+        case 0:
+            print("Категория tapped")
+            // Здесь можно открыть экран выбора категории
+        case 1:
+            print("Расписание tapped")
+            // Здесь можно открыть экран выбора расписания
+        default:
+            break
+        }
     }
 }

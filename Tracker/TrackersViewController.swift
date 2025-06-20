@@ -41,11 +41,10 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - UI Setup
     private func setupUI() {
-        view.backgroundColor = Colors.whiteNight
-        mainView.backgroundColor = Colors.whiteNight
+        view.backgroundColor = Colors.whiteDay // корневое вью
+        mainView.backgroundColor = Colors.whiteDay
         
         addButton.setImage(UIImage(named: "add_tracker"), for: .normal)
-        addButton.tintColor = Colors.blackNight
         
         dateButton.setTitle("14.12.22", for: .normal)
         dateButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .regular)
@@ -55,7 +54,7 @@ final class TrackersViewController: UIViewController {
         
         titleLabel.text = "Трекеры"
         titleLabel.font = .systemFont(ofSize: 34, weight: .bold)
-        titleLabel.textColor = Colors.blackNight
+        titleLabel.textColor = Colors.blackDay
         
         searchField.backgroundColor = Colors.searchFieldBackground
         searchField.textColor = Colors.searchTextColor
@@ -63,9 +62,12 @@ final class TrackersViewController: UIViewController {
         searchField.layer.cornerRadius = 10
         searchField.layer.masksToBounds = true
         
+        let iconContainer = UIView(frame: CGRect(x: 0, y: 0, width: 30, height: 36)) // Контейнер для иконки
         let iconView = UIImageView(image: UIImage(systemName: "magnifyingglass"))
         iconView.tintColor = Colors.searchTextColor
-        searchField.leftView = iconView
+        iconView.frame = CGRect(x: 8, y: 10, width: 16, height: 16) // Позиционирование иконки:
+        iconContainer.addSubview(iconView)
+        searchField.leftView = iconContainer
         searchField.leftViewMode = .always
         
         searchField.attributedPlaceholder = NSAttributedString(
@@ -81,7 +83,7 @@ final class TrackersViewController: UIViewController {
         
         trackLabel.text = "Что будем отслеживать?"
         trackLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        trackLabel.textColor = Colors.blackNight
+        trackLabel.textColor = Colors.blackDay
         trackLabel.textAlignment = .center
         trackLabel.isHidden = true
         

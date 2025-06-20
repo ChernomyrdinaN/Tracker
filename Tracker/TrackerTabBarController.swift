@@ -30,10 +30,14 @@ final class TrackerTabBarController: UITabBarController {
         
         viewControllers = [trackersVC, statisticsVC]
     }
-        
-        private func setupTabBarAppearance(){
-            tabBar.barTintColor = Colors.whiteNight
-            tabBar.tintColor = Colors.blue
-            tabBar.unselectedItemTintColor = Colors.gray
-        }
+    
+    private func setupTabBarAppearance(){
+        tabBar.barTintColor = Colors.whiteDay
+        tabBar.tintColor = Colors.blue
+        tabBar.unselectedItemTintColor = Colors.gray
+        tabBar.layer.borderWidth = 1
+        tabBar.layer.borderColor = UIColor.systemGray3.cgColor
+        tabBar.clipsToBounds = true
+        tabBar.itemPositioning = .centered
     }
+}
