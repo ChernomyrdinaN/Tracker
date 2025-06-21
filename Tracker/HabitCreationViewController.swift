@@ -13,17 +13,21 @@ final class HabitCreationViewController: UIViewController {
     private let mainView = UIView()
     private let titleLabel = UILabel()
     private let nameTextField = UITextField()
+    private let clearTextFieldButton = UIButton(type: .system)
+    private let errorLabel = UILabel()
     private let tableView = UITableView()
     private let cancelButton = UIButton()
     private let createButton = UIButton()
     
     private let options = ["Категория", "Расписание"]
+    private let maxHabitNameLength = 38
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setupConstraints()
+        setupTextField()
     }
     
     // MARK: - UI Setup
@@ -47,6 +51,19 @@ final class HabitCreationViewController: UIViewController {
         let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 75))
         nameTextField.leftView = paddingView
         nameTextField.leftViewMode = .always
+        
+        // Кнопка очистки текста (крестик)
+        clearTextFieldButton.setImage(UIImage(named: "xmark_circle"), for: .normal)
+        clearTextFieldButton.tintColor = Colors.gray
+        clearTextFieldButton.isHidden = true
+        clearTextFieldButton.addTarget(self, action: #selector(clearTextField), for: .touchUpInside)
+        
+        
+        // Лейбл ошибки
+        errorLabel.text = "Ограничение 38 символов"
+        errorLabel.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        errorLabel.textColor = Colors.red
+        errorLabel.isHidden = true
         
         // Настройка таблицы
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
@@ -75,7 +92,7 @@ final class HabitCreationViewController: UIViewController {
         createButton.layer.cornerRadius = 16
         createButton.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
         
-        [mainView, titleLabel, nameTextField, tableView, cancelButton, createButton].forEach {
+        [mainView, titleLabel, nameTextField, clearTextFieldButton, errorLabel, tableView, cancelButton, createButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
@@ -99,8 +116,18 @@ final class HabitCreationViewController: UIViewController {
             nameTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             nameTextField.heightAnchor.constraint(equalToConstant: 75),
             
+            // Кнопка очистки текста
+            clearTextFieldButton.centerYAnchor.constraint(equalTo: nameTextField.centerYAnchor),
+            clearTextFieldButton.trailingAnchor.constraint(equalTo: nameTextField.trailingAnchor, constant: -16),
+            clearTextFieldButton.widthAnchor.constraint(equalToConstant: 20),
+            clearTextFieldButton.heightAnchor.constraint(equalToConstant: 20),
+            
+            // Лейбл ошибки
+            errorLabel.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 8),
+            errorLabel.leadingAnchor.constraint(equalTo: nameTextField.leadingAnchor, constant: 16),
+            
             // Таблица с кнопками
-            tableView.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 24),
+            tableView.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 32),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             tableView.heightAnchor.constraint(equalToConstant: 150),
@@ -119,7 +146,46 @@ final class HabitCreationViewController: UIViewController {
         ])
     }
     
-    // MARK: - Button Actions
+    // MARK: - Actions
+    @objc private func clearTextField() {
+        nameTextField.text = ""
+        clearTextFieldButton.isHidden = true
+        errorLabel.isHidden = true
+        updateCreateButtonState()
+    }
+    
+    @objc private func textFieldDidChange(_ textField: UITextField) {
+        guard let text = textField.text else { return }
+        
+        // Показываем/скрываем крестик
+        clearTextFieldButton.isHidden = text.isEmpty
+        
+        // Проверяем длину текста
+        errorLabel.isHidden = text.count <= 38
+        updateCreateButtonState()
+        
+        // Автоматическая обрезка если превышен лимит
+        if text.count > 38 {
+            textField.text = String(text.prefix(38))
+            errorLabel.isHidden = false
+        }
+        
+        // Обновляем состояние кнопки "Создать"
+        updateCreateButtonState()
+    }
+    
+    private func updateCreateButtonState() {
+        let text = nameTextField.text ?? ""
+        let isNameValid = !text.isEmpty && text.count <= maxHabitNameLength
+        createButton.isEnabled = isNameValid
+        createButton.backgroundColor = isNameValid ? Colors.blue : Colors.gray
+    }
+    
+    private func setupTextField() {
+        nameTextField.delegate = self
+        nameTextField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
+    }
+    
     @objc private func cancelButtonTapped() {
         dismiss(animated: true)
     }
@@ -129,41 +195,33 @@ final class HabitCreationViewController: UIViewController {
     }
 }
 
-// MARK: - UITableViewDataSource
-extension HabitCreationViewController: UITableViewDataSource {
+// MARK: - UITextFieldDelegate
+extension HabitCreationViewController: UITextFieldDelegate {
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        return true // Разрешаем все изменения текста поверку длины будем делать в textFieldDidChange
+    }
+}
+
+// MARK: - UITableViewDataSource & UITableViewDelegate
+extension HabitCreationViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return options.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.backgroundColor = Colors.backgroundDay
         cell.textLabel?.text = options[indexPath.row]
-        cell.textLabel?.textColor = Colors.blackDay
+        cell.backgroundColor = Colors.backgroundDay
         cell.accessoryType = .disclosureIndicator
-        cell.selectionStyle = .none
-        
         return cell
     }
-}
-
-// MARK: - UITableViewDelegate
-extension HabitCreationViewController: UITableViewDelegate {
+    
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 75
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        // Обработка нажатия на ячейку
-        switch indexPath.row {
-        case 0:
-            print("Категория tapped")
-            // Здесь можно открыть экран выбора категории
-        case 1:
-            print("Расписание tapped")
-            // Здесь можно открыть экран выбора расписания
-        default:
-            break
-        }
+        tableView.deselectRow(at: indexPath, animated: true)
+        // Обработка выбора категории или расписания
     }
 }
