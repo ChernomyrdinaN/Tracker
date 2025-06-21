@@ -41,20 +41,22 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - UI Setup
     private func setupUI() {
-        view.backgroundColor = Colors.whiteDay // корневое вью
-        mainView.backgroundColor = Colors.whiteDay
+        view.backgroundColor = Colors.white// корневое вью
+        mainView.backgroundColor = Colors.white
         
-        addButton.setImage(UIImage(named: "add_tracker"), for: .normal)
+        addButton.setImage(UIImage(named: "add_tracker")?.withRenderingMode(.alwaysTemplate), for: .normal)
+        addButton.tintColor = Colors.black
         
+
         dateButton.setTitle("14.12.22", for: .normal)
         dateButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .regular)
-        dateButton.setTitleColor(Colors.blackDay, for: .normal)
+        dateButton.setTitleColor(Colors.black, for: .normal)
         dateButton.backgroundColor = Colors.datePickerBackground
         dateButton.layer.cornerRadius = 8
         
         titleLabel.text = "Трекеры"
         titleLabel.font = .systemFont(ofSize: 34, weight: .bold)
-        titleLabel.textColor = Colors.blackDay
+        titleLabel.textColor = Colors.black
         
         searchField.backgroundColor = Colors.searchFieldBackground
         searchField.textColor = Colors.searchTextColor
@@ -83,7 +85,7 @@ final class TrackersViewController: UIViewController {
         
         trackLabel.text = "Что будем отслеживать?"
         trackLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        trackLabel.textColor = Colors.blackDay
+        trackLabel.textColor = Colors.black
         trackLabel.textAlignment = .center
         trackLabel.isHidden = true
         

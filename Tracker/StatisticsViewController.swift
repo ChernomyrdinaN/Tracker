@@ -14,7 +14,7 @@ final class StatisticsViewController: UIViewController {
         let label = UILabel()
         label.text = "Здесь будет статистика"
         label.textAlignment = .center
-        label.textColor = Colors.blackDay
+        label.textColor = Colors.black
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -27,7 +27,7 @@ final class StatisticsViewController: UIViewController {
     
     // MARK: - UI Setup
     private func setupUI() {
-        view.backgroundColor = Colors.whiteDay
+        view.backgroundColor = Colors.white
         addSubviews()
         setupConstraints()
     }

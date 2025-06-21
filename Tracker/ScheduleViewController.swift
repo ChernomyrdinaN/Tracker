@@ -27,13 +27,13 @@ final class ScheduleViewController: UIViewController {
     
     // MARK: - UI Setup
     private func setupUI() {
-        view.backgroundColor = Colors.whiteNight
-        mainView.backgroundColor = Colors.whiteDay
+        view.backgroundColor = Colors.white
+        mainView.backgroundColor = Colors.white
         
         // Настройка заголовка
         titleLabel.text = "Расписание"
         titleLabel.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        titleLabel.textColor = Colors.blackDay
+        titleLabel.textColor = Colors.black
         titleLabel.textAlignment = .center
         
         // Настройка таблицы
@@ -46,9 +46,9 @@ final class ScheduleViewController: UIViewController {
         
         // Настройка кнопки "Готово"
         doneButton.setTitle("Готово", for: .normal)
-        doneButton.backgroundColor = Colors.blackDay
+        doneButton.backgroundColor = Colors.black
         doneButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        doneButton.setTitleColor(Colors.whiteDay, for: .normal)
+        doneButton.setTitleColor(Colors.white, for: .normal)
         doneButton.layer.cornerRadius = 16
         doneButton.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
         
@@ -101,7 +101,7 @@ extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         let day = daysOfWeek[indexPath.row]
         cell.textLabel?.text = day.rawValue
-        cell.backgroundColor = Colors.backgroundDay
+        cell.backgroundColor = Colors.background
         
         // Добавляем переключатель
         let switchView = UISwitch()

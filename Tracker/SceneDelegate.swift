@@ -14,15 +14,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
         
-        let scheduleVC = ScheduleViewController()
+        /*let scheduleVC = ScheduleViewController()
         let navController = UINavigationController(rootViewController: scheduleVC)
         window?.rootViewController = navController
-        window?.makeKeyAndVisible()
-        /*
+        window?.makeKeyAndVisible()*/
+        
         window?.rootViewController = TrackersViewController()
         window?.rootViewController = TrackerTabBarController() 
         window?.makeKeyAndVisible()
-         */
+         
 }
 
     func sceneDidDisconnect(_ scene: UIScene) {

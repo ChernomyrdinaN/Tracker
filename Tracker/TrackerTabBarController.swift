@@ -14,8 +14,12 @@ final class TrackerTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViewControllers()
-        setupTabBarAppearance()
+       // setupTabBarAppearance()
     }
+    override func viewDidLayoutSubviews() {
+            super.viewDidLayoutSubviews()
+            addTopBorderToTabBar()
+        }
     
     private func setupViewControllers() {
         let trackersVC = TrackersViewController()
@@ -31,13 +35,12 @@ final class TrackerTabBarController: UITabBarController {
         viewControllers = [trackersVC, statisticsVC]
     }
     
-    private func setupTabBarAppearance(){
-        tabBar.barTintColor = Colors.whiteDay
-        tabBar.tintColor = Colors.blue
-        tabBar.unselectedItemTintColor = Colors.gray
-        tabBar.layer.borderWidth = 1
-        tabBar.layer.borderColor = UIColor.systemGray3.cgColor
-        tabBar.clipsToBounds = true
-        tabBar.itemPositioning = .centered
+    
+    private func addTopBorderToTabBar() {
+        guard tabBar.viewWithTag(999) == nil else { return }
+        let lineView = UIView(frame: CGRect(x: 0, y: 0, width: tabBar.bounds.width, height: 1))
+        lineView.backgroundColor = Colors.lightGray
+        lineView.tag = 999
+        tabBar.addSubview(lineView)
     }
 }
