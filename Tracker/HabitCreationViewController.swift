@@ -31,19 +31,19 @@ final class HabitCreationViewController: UIViewController {
     
     // MARK: - UI Setup
     private func setupUI() {
-        view.backgroundColor = .white
+        view.backgroundColor = Colors.white
         
         // Настройка заголовка
         titleLabel.text = "Новая привычка"
-        titleLabel.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        titleLabel.textColor = .black
+        titleLabel.font = .systemFont(ofSize: 16, weight: .medium)
+        titleLabel.textColor = Colors.black
         titleLabel.textAlignment = .center
         
         // Настройка поля ввода
         nameTextField.placeholder = "Введите название трекера"
         nameTextField.backgroundColor = Colors.background
-        nameTextField.font = UIFont.systemFont(ofSize: 17, weight: .regular)
-        nameTextField.textColor = .black
+        nameTextField.font = .systemFont(ofSize: 17, weight: .regular)
+        nameTextField.textColor = Colors.black
         nameTextField.layer.cornerRadius = 16
         nameTextField.layer.masksToBounds = true
         nameTextField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 75))
@@ -57,7 +57,7 @@ final class HabitCreationViewController: UIViewController {
         
         // Лейбл ошибки
         errorLabel.text = "Ограничение 38 символов"
-        errorLabel.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        errorLabel.font = .systemFont(ofSize: 17, weight: .regular)
         errorLabel.textColor = Colors.red
         errorLabel.textAlignment = .center
         errorLabel.isHidden = true
@@ -72,7 +72,7 @@ final class HabitCreationViewController: UIViewController {
         // Кнопки внизу экрана
         cancelButton.setTitle("Отменить", for: .normal)
         cancelButton.backgroundColor = .clear
-        cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        cancelButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         cancelButton.setTitleColor(Colors.red, for: .normal)
         cancelButton.layer.borderWidth = 1
         cancelButton.layer.borderColor = Colors.red?.cgColor
@@ -81,8 +81,8 @@ final class HabitCreationViewController: UIViewController {
         
         createButton.setTitle("Создать", for: .normal)
         createButton.backgroundColor = Colors.gray
-        createButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        createButton.setTitleColor(.white, for: .normal)
+        createButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
+        createButton.setTitleColor(Colors.white, for: .normal)
         createButton.isEnabled = false
         createButton.layer.cornerRadius = 16
         createButton.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
@@ -101,8 +101,8 @@ final class HabitCreationViewController: UIViewController {
         
         let titleLabel = UILabel()
         titleLabel.text = title
-        titleLabel.font = UIFont.systemFont(ofSize: 17, weight: .regular)
-        titleLabel.textColor = .black
+        titleLabel.font = .systemFont(ofSize: 17, weight: .regular)
+        titleLabel.textColor = Colors.black
         
         let arrow = UIImageView(image: UIImage(named: "chevron"))
         arrow.tintColor = Colors.gray
