@@ -19,10 +19,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window?.rootViewController = navController
         window?.makeKeyAndVisible()*/
         
-        window?.rootViewController = TrackersViewController()
-        window?.rootViewController = TrackerTabBarController() 
-        window?.makeKeyAndVisible()
-         
+        let tabBarController = TrackerTabBarController()
+           window?.rootViewController = tabBarController
+           window?.makeKeyAndVisible()
 }
 
     func sceneDidDisconnect(_ scene: UIScene) {

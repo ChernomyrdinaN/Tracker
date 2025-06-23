@@ -10,33 +10,38 @@ import UIKit
 final class TrackerTabBarController: UITabBarController {
     
     // MARK: - Lifecycle
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupViewControllers()
-       // setupTabBarAppearance()
+        setupTabs()
+        setupAppearance()
     }
-    override func viewDidLayoutSubviews() {
-            super.viewDidLayoutSubviews()
-            addTopBorderToTabBar()
-        }
     
-    private func setupViewControllers() {
+    // MARK: - Setup
+    private func setupTabs() {
+        
         let trackersVC = TrackersViewController()
-        let statisticsVC = StatisticsViewController()
-        
+        let trackersNavVC = UINavigationController(rootViewController: trackersVC)
         trackersVC.tabBarItem = UITabBarItem(
-            title: "Трекеры", image: UIImage(named: "trackers_icon"),
-            tag: 0)
-        statisticsVC.tabBarItem = UITabBarItem(
-            title: "Статистика", image: UIImage(named: "statistics_icon"),
-            tag: 1)
+            title: "Трекеры",
+            image: UIImage(named: "trackers_icon"),
+            selectedImage: nil
+        )
         
-        viewControllers = [trackersVC, statisticsVC]
+        let statisticsVC = StatisticsViewController()
+        let statisticsNavVC = UINavigationController(rootViewController: statisticsVC)
+        statisticsVC.tabBarItem = UITabBarItem(
+            title: "Статистика",
+            image: UIImage(named: "statistics_icon"),
+            selectedImage: nil
+        )
+        
+        viewControllers = [trackersNavVC, statisticsNavVC]
     }
     
-    
-    private func addTopBorderToTabBar() {
+    private func setupAppearance() {
+        tabBar.barTintColor = Colors.white
+        tabBar.tintColor = Colors.blue
+        tabBar.unselectedItemTintColor = Colors.gray
         guard tabBar.viewWithTag(999) == nil else { return }
         let lineView = UIView(frame: CGRect(x: 0, y: 0, width: tabBar.bounds.width, height: 1))
         lineView.backgroundColor = Colors.lightGray
