@@ -14,11 +14,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
         
-        /*let scheduleVC = ScheduleViewController()
-        let navController = UINavigationController(rootViewController: scheduleVC)
-        window?.rootViewController = navController
-        window?.makeKeyAndVisible()*/
-        
         let tabBarController = TrackerTabBarController()
            window?.rootViewController = tabBarController
            window?.makeKeyAndVisible()

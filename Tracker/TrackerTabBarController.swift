@@ -39,9 +39,6 @@ final class TrackerTabBarController: UITabBarController {
     }
     
     private func setupAppearance() {
-        tabBar.barTintColor = Colors.white
-        tabBar.tintColor = Colors.blue
-        tabBar.unselectedItemTintColor = Colors.gray
         guard tabBar.viewWithTag(999) == nil else { return }
         let lineView = UIView(frame: CGRect(x: 0, y: 0, width: tabBar.bounds.width, height: 1))
         lineView.backgroundColor = Colors.lightGray
