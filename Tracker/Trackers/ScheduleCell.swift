@@ -10,17 +10,14 @@ import UIKit
 final class ScheduleCell: UITableViewCell {
     
     // MARK: - UI Elements
-    
     private let titleLabel = UILabel()
     private let switchControl = UISwitch()
-    
+
     // MARK: - Properties
-    
     static let reuseIdentifier = "ScheduleCell"
     var onSwitchChanged: ((Bool) -> Void)?
     
     // MARK: - Lifecycle
-    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
@@ -31,14 +28,12 @@ final class ScheduleCell: UITableViewCell {
     }
     
     // MARK: - Public Methods
-    
     func configure(with day: WeekDay, isOn: Bool) {
         titleLabel.text = day.rawValue
         switchControl.isOn = isOn
     }
     
     // MARK: - Private Methods
-    
     private func setupUI() {
         backgroundColor = Colors.background
         selectionStyle = .none
@@ -64,7 +59,6 @@ final class ScheduleCell: UITableViewCell {
     }
     
     // MARK: - Actions
-    
     @objc private func switchValueChanged() {
         onSwitchChanged?(switchControl.isOn)
     }

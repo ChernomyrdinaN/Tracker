@@ -20,6 +20,11 @@ final class TrackersViewController: UIViewController {
         let collection = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collection.translatesAutoresizingMaskIntoConstraints = false
         collection.register(TrackerCell.self, forCellWithReuseIdentifier: "TrackerCell")
+        collection.register(
+            TrackerSectionHeader.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+            withReuseIdentifier: "header"
+        )
         return collection
     }()
     
@@ -28,6 +33,7 @@ final class TrackersViewController: UIViewController {
         didSet {
             errorImageView.isHidden = !isEmptyState
             trackLabel.isHidden = !isEmptyState
+            collectionView.isHidden = isEmptyState
         }
     }
     
@@ -61,12 +67,6 @@ final class TrackersViewController: UIViewController {
     
     private func setupCollectionView() {
         view.addSubview(collectionView)
-        
-        let layout = collectionView.collectionViewLayout as! UICollectionViewFlowLayout
-        layout.itemSize = CGSize(width: 167, height: 148)
-        layout.sectionInset = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
-        layout.minimumLineSpacing = 16
-        layout.minimumInteritemSpacing = 9
         
         collectionView.dataSource = self
         collectionView.delegate = self
@@ -122,11 +122,9 @@ final class TrackersViewController: UIViewController {
     
     private func configureEmptyState() {
         errorImageView.image = UIImage(named: "ilerror1")
-        errorImageView.isHidden = true
         trackLabel.text = "Что будем отслеживать?"
         trackLabel.font = .systemFont(ofSize: 12, weight: .medium)
         trackLabel.textColor = Colors.black
-        trackLabel.isHidden = true
     }
     
     private func setupDefaultData() {
@@ -152,7 +150,9 @@ final class TrackersViewController: UIViewController {
     
     private func checkForEmptyState() {
         let hasVisibleTrackers = categories.contains { category in
-            category.trackers.contains { isTrackerVisible($0, for: currentDate) }
+            !category.trackers.filter { tracker in
+                isTrackerVisible(tracker, for: currentDate)
+            }.isEmpty
         }
         isEmptyState = !hasVisibleTrackers
     }
@@ -185,7 +185,9 @@ final class TrackersViewController: UIViewController {
     }
     
     private func addSubviewsAndSetupConstraints() {
-        [errorImageView, trackLabel, titleLabel, searchField, collectionView].forEach {
+        view.addSubview(collectionView)
+        
+        [errorImageView, trackLabel, titleLabel, searchField].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
@@ -237,6 +239,7 @@ final class TrackersViewController: UIViewController {
     
     @objc private func datePickerValueChanged(_ sender: UIDatePicker) {
         currentDate = sender.date
+        checkForEmptyState()
     }
 }
 
@@ -278,11 +281,66 @@ extension TrackersViewController: UICollectionViewDataSource {
         
         return cell
     }
+    
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        guard kind == UICollectionView.elementKindSectionHeader,
+              let header = collectionView.dequeueReusableSupplementaryView(
+                ofKind: kind,
+                withReuseIdentifier: "header",
+                for: indexPath
+              ) as? TrackerSectionHeader else {
+            return UICollectionReusableView()
+        }
+        
+        header.titleLabel.text = categories[indexPath.section].title
+        return header
+    }
 }
 
-// MARK: - UICollectionViewDelegate
-extension TrackersViewController: UICollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        print("Selected: \(categories[indexPath.section].trackers[indexPath.item].name)")
+// MARK: - UICollectionViewDelegateFlowLayout
+extension TrackersViewController: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: 167, height: 148)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return 16
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 9
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+        return CGSize(width: collectionView.bounds.width, height: 46)
+    }
+}
+
+final class TrackerSectionHeader: UICollectionReusableView {
+    let titleLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 19, weight: .bold)
+        label.textColor = Colors.black
+        return label
+    }()
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        addSubview(titleLabel)
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
+            titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 16),
+            titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12)
+        ])
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 }
