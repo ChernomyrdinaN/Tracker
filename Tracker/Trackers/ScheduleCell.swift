@@ -8,17 +8,19 @@
 import UIKit
 
 final class ScheduleCell: UITableViewCell {
-    // MARK: - Static Properties
-    static let reuseIdentifier = "ScheduleCell"
     
     // MARK: - UI Elements
+    
     private let titleLabel = UILabel()
     private let switchControl = UISwitch()
     
     // MARK: - Properties
+    
+    static let reuseIdentifier = "ScheduleCell"
     var onSwitchChanged: ((Bool) -> Void)?
     
-    // MARK: - Initializers
+    // MARK: - Lifecycle
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
@@ -28,7 +30,15 @@ final class ScheduleCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Public Methods
+    
+    func configure(with day: WeekDay, isOn: Bool) {
+        titleLabel.text = day.rawValue
+        switchControl.isOn = isOn
+    }
+    
     // MARK: - Private Methods
+    
     private func setupUI() {
         backgroundColor = Colors.background
         selectionStyle = .none
@@ -53,13 +63,8 @@ final class ScheduleCell: UITableViewCell {
         ])
     }
     
-    // MARK: - Public Methods
-    func configure(with day: WeekDay, isOn: Bool) {
-        titleLabel.text = day.rawValue
-        switchControl.isOn = isOn
-    }
-    
     // MARK: - Actions
+    
     @objc private func switchValueChanged() {
         onSwitchChanged?(switchControl.isOn)
     }

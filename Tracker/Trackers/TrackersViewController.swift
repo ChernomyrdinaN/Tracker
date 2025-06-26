@@ -15,8 +15,6 @@ final class TrackersViewController: UIViewController {
     private let errorImageView = UIImageView()
     private let trackLabel = UILabel()
     private let datePicker = UIDatePicker()
-    private let filtersButton = UIButton()
-    
     private let collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         let collection = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -36,11 +34,7 @@ final class TrackersViewController: UIViewController {
     private var currentDate = Date() {
         didSet {
             collectionView.reloadData()
-            
-            let hasVisibleTrackers = categories.contains { category in
-                category.trackers.contains { isTrackerVisible($0, for: currentDate) }
-            }
-            isEmptyState = !hasVisibleTrackers
+            checkForEmptyState()
         }
     }
     
@@ -53,18 +47,15 @@ final class TrackersViewController: UIViewController {
         setupUI()
         setupCollectionView()
         setupNavigationBar()
-        setupTestData()
+        setupDefaultData()
     }
     
     // MARK: - UI Setup
     private func setupUI() {
         view.backgroundColor = Colors.white
-        
         configureTitleLabel()
         configureSearchField()
         configureEmptyState()
-        configureFiltersButton()
-        
         addSubviewsAndSetupConstraints()
     }
     
@@ -84,10 +75,10 @@ final class TrackersViewController: UIViewController {
             collectionView.topAnchor.constraint(equalTo: searchField.bottomAnchor, constant: 24),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: filtersButton.topAnchor, constant: -16)
+            collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
     }
-    // MARK: - Navigation Bar Setup
+    
     private func setupNavigationBar() {
         let addButton = UIBarButtonItem(
             image: UIImage(named: "add_tracker")?.withRenderingMode(.alwaysTemplate),
@@ -97,14 +88,14 @@ final class TrackersViewController: UIViewController {
         addButton.tintColor = Colors.black
         navigationItem.leftBarButtonItem = addButton
         
-        // Настройка datePicker
         datePicker.datePickerMode = .date
         datePicker.preferredDatePickerStyle = .compact
         datePicker.locale = Locale(identifier: "ru_RU")
+        datePicker.addTarget(self, action: #selector(datePickerValueChanged), for: .valueChanged)
         navigationItem.rightBarButtonItem = UIBarButtonItem(customView: datePicker)
     }
     
-    // MARK: - UI Configuration
+    // MARK: - Private Methods
     private func configureTitleLabel() {
         titleLabel.text = "Трекеры"
         titleLabel.font = .systemFont(ofSize: 34, weight: .bold)
@@ -138,20 +129,43 @@ final class TrackersViewController: UIViewController {
         trackLabel.isHidden = true
     }
     
-    private func configureFiltersButton() {
-        filtersButton.setTitle("Фильтры", for: .normal)
-        filtersButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
-        filtersButton.setTitleColor(.white, for: .normal)
-        filtersButton.backgroundColor = Colors.blue
-        filtersButton.layer.cornerRadius = 16
-        filtersButton.translatesAutoresizingMaskIntoConstraints = false
-      
-        NSLayoutConstraint.activate([
-            filtersButton.widthAnchor.constraint(equalToConstant: 114),
-            filtersButton.heightAnchor.constraint(equalToConstant: 50)
-        ])
-
-        filtersButton.addTarget(self, action: #selector(filtersButtonTapped), for: .touchUpInside)
+    private func setupDefaultData() {
+        let defaultTracker = Tracker(
+            id: UUID(),
+            name: "Поливать растения",
+            color: "Color selection 5",
+            emoji: "🌱",
+            schedule: [.monday, .wednesday, .friday],
+            isRegular: true,
+            colorAssetName: "Color selection 5"
+        )
+        
+        let defaultCategory = TrackerCategory(
+            id: UUID(),
+            title: "Домашний уют",
+            trackers: [defaultTracker]
+        )
+        
+        categories = [defaultCategory]
+        checkForEmptyState()
+    }
+    
+    private func checkForEmptyState() {
+        let hasVisibleTrackers = categories.contains { category in
+            category.trackers.contains { isTrackerVisible($0, for: currentDate) }
+        }
+        isEmptyState = !hasVisibleTrackers
+    }
+    
+    private func isTrackerVisible(_ tracker: Tracker, for date: Date) -> Bool {
+        guard tracker.isRegular else { return true }
+        
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: date)
+        
+        return tracker.schedule?.contains { day in
+            day.calendarIndex == weekday
+        } ?? false
     }
     
     private func isTrackerCompletedToday(_ trackerId: UUID) -> Bool {
@@ -167,13 +181,11 @@ final class TrackersViewController: UIViewController {
         } else {
             completedTrackers.removeAll { $0.trackerId == trackerId && Calendar.current.isDate($0.date, inSameDayAs: date) }
         }
-        
         collectionView.reloadData()
     }
     
-    // MARK: - Constraints
     private func addSubviewsAndSetupConstraints() {
-        [titleLabel, searchField, errorImageView, trackLabel, filtersButton].forEach {
+        [errorImageView, trackLabel, titleLabel, searchField, collectionView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
@@ -193,44 +205,11 @@ final class TrackersViewController: UIViewController {
             errorImageView.heightAnchor.constraint(equalToConstant: 80),
             
             trackLabel.topAnchor.constraint(equalTo: errorImageView.bottomAnchor, constant: 8),
-            trackLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            
-            filtersButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            filtersButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16)
-            
+            trackLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
     }
-    // Тестовый вариант
-    private func setupTestData() {
-        let testTracker = Tracker(
-            id: UUID(),
-            name: "Поливать растения",
-            color: "Color selection 5",
-            emoji: "🌱",      // Фиксированное эмодзи
-            schedule: [.monday, .wednesday, .friday], // Фиксированные дни
-            isRegular: true, colorAssetName: "Color selection 5"
-        )
-        
-        let defaultCategory = TrackerCategory(
-            id: UUID(),
-            title: "Домашний уют",
-            trackers: [testTracker]
-        )
-        
-        categories = [defaultCategory]
-    }
     
-    private func isTrackerVisible(_ tracker: Tracker, for date: Date) -> Bool {
-        guard tracker.isRegular else { return true }
-        
-        let calendar = Calendar.current
-        let weekday = calendar.component(.weekday, from: date)
-        
-        return tracker.schedule?.contains { day in
-            day.calendarIndex == weekday
-        } ?? false
-    }
-    
+    // MARK: - Actions
     @objc private func addButtonTapped() {
         let habitVC = HabitCreationViewController()
         
@@ -249,7 +228,7 @@ final class TrackersViewController: UIViewController {
             }
             
             self.collectionView.reloadData()
-            self.isEmptyState = self.categories.allSatisfy { $0.trackers.isEmpty }
+            self.checkForEmptyState()
         }
         
         let navController = UINavigationController(rootViewController: habitVC)
@@ -258,11 +237,6 @@ final class TrackersViewController: UIViewController {
     
     @objc private func datePickerValueChanged(_ sender: UIDatePicker) {
         currentDate = sender.date
-    }
-    
-    @objc private func filtersButtonTapped() {
-        // Здесь можно добавить логику для отображения фильтров
-        print("Фильтры нажаты")
     }
 }
 
@@ -278,25 +252,14 @@ extension TrackersViewController: UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: TrackerCell.identifier,
+            withReuseIdentifier: "TrackerCell",
             for: indexPath
         ) as? TrackerCell else {
             return UICollectionViewCell()
         }
         
         let tracker = categories[indexPath.section].trackers[indexPath.item]
-        
-        let shouldShow: Bool
-        if tracker.isRegular {
-            let calendar = Calendar.current
-            let weekday = calendar.component(.weekday, from: currentDate)
-            
-            shouldShow = tracker.schedule?.contains { $0.rawValue == String(weekday) } ?? false
-        } else {
-            
-            shouldShow = true
-        }
-        
+        let shouldShow = isTrackerVisible(tracker, for: currentDate)
         cell.isHidden = !shouldShow && tracker.isRegular
         
         let completedDays = completedTrackers.filter { $0.trackerId == tracker.id }.count
@@ -316,6 +279,7 @@ extension TrackersViewController: UICollectionViewDataSource {
         return cell
     }
 }
+
 // MARK: - UICollectionViewDelegate
 extension TrackersViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {

@@ -3,7 +3,7 @@
 //  Tracker
 //
 //  Created by Наталья Черномырдина on 24.06.2025.
-//  Кастомная ячейка для трекера с эмодзи и названием трекера
+//
 
 import UIKit
 
@@ -55,63 +55,38 @@ final class TrackerCell: UICollectionViewCell {
     
     // MARK: - Private Methods
     private func setupUI() {
-        setupContainerView()
-        setupEmojiBackground()
-        setupEmojiLabel()
-        setupTitleLabel()
-        setupDaysLabel()
-        setupPlusButton()
-        setupConstraints()
-    }
-    
-    private func setupContainerView() {
         containerView.layer.cornerRadius = 16
         containerView.clipsToBounds = true
-        containerView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(containerView)
-    }
-    
-    private func setupEmojiBackground() {
+        
         emojiBackground.layer.cornerRadius = 12
         emojiBackground.clipsToBounds = true
-        emojiBackground.translatesAutoresizingMaskIntoConstraints = false
-        containerView.addSubview(emojiBackground)
-    }
-    
-    private func setupEmojiLabel() {
+        
         emojiLabel.font = .systemFont(ofSize: 16)
         emojiLabel.textAlignment = .center
-        emojiLabel.translatesAutoresizingMaskIntoConstraints = false
-        emojiBackground.addSubview(emojiLabel)
-    }
-    
-    private func setupTitleLabel() {
+        
         titleLabel.font = .systemFont(ofSize: 12, weight: .medium)
         titleLabel.textColor = Colors.white
         titleLabel.numberOfLines = 2
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        containerView.addSubview(titleLabel)
-    }
-    
-    private func setupDaysLabel() {
+        
         daysLabel.font = .systemFont(ofSize: 12, weight: .medium)
         daysLabel.textColor = Colors.black
-        daysLabel.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(daysLabel)
-    }
-    
-    private func setupPlusButton() {
+        
         plusButton.layer.cornerRadius = 17
         plusButton.clipsToBounds = true
-        plusButton.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(plusButton)
-    }
-    
-    private func setupButtonActions() {
-        plusButton.addTarget(self, action: #selector(plusButtonTapped), for: .touchUpInside)
-    }
-    
-    private func setupConstraints() {
+        
+        [containerView, daysLabel, plusButton].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            contentView.addSubview($0)
+        }
+        
+        [emojiBackground, titleLabel].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            containerView.addSubview($0)
+        }
+        
+        emojiLabel.translatesAutoresizingMaskIntoConstraints = false
+        emojiBackground.addSubview(emojiLabel)
+        
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor),
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
@@ -140,6 +115,10 @@ final class TrackerCell: UICollectionViewCell {
         ])
     }
     
+    private func setupButtonActions() {
+        plusButton.addTarget(self, action: #selector(plusButtonTapped), for: .touchUpInside)
+    }
+    
     private func updatePlusButton() {
         let imageName = isCompletedToday ? "checkmark" : "plus"
         plusButton.setImage(UIImage(systemName: imageName), for: .normal)
@@ -166,16 +145,15 @@ final class TrackerCell: UICollectionViewCell {
         }
     }
     
+    // MARK: - Actions
     @objc private func plusButtonTapped() {
         guard let trackerId = trackerId else { return }
         
         isCompletedToday.toggle()
-        
         completedDays += isCompletedToday ? 1 : -1
         daysLabel.text = formattedDaysCount(completedDays)
         
         updatePlusButton()
-        
         onPlusButtonTapped?(trackerId, currentDate, isCompletedToday)
     }
 }

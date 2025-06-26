@@ -19,10 +19,10 @@ final class HabitCreationViewController: UIViewController {
     private let scheduleButton = UIButton()
     private let cancelButton = UIButton()
     private let createButton = UIButton()
-    private var selectedSchedule: Set<WeekDay> = []
     
     // MARK: - Properties
     private let maxHabitNameLength = 38
+    private var selectedSchedule: Set<WeekDay> = []
     var onTrackerCreated: ((Tracker) -> Void)?
     
     // MARK: - Lifecycle
@@ -36,18 +36,18 @@ final class HabitCreationViewController: UIViewController {
     // MARK: - UI Setup
     private func setupUI() {
         view.backgroundColor = Colors.white
-        
         configureTitleLabel()
         configureInputContainer()
         configureCategoryButton()
         configureScheduleButton()
         configureCancelButton()
         configureCreateButton()
-        
         addSubviews()
     }
     
     // MARK: - Private Methods
+    
+    // MARK: Configuration
     private func configureTitleLabel() {
         titleLabel.text = "Новая привычка"
         titleLabel.font = .systemFont(ofSize: 16, weight: .medium)
@@ -76,6 +76,8 @@ final class HabitCreationViewController: UIViewController {
         nameTextField.layer.masksToBounds = true
         nameTextField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 75))
         nameTextField.leftViewMode = .always
+        nameTextField.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 41, height: 75))
+        nameTextField.rightViewMode = .always
     }
     
     private func configureClearButton() {
@@ -132,6 +134,7 @@ final class HabitCreationViewController: UIViewController {
         titleLabel.font = .systemFont(ofSize: 17, weight: .regular)
         titleLabel.textColor = Colors.black
         titleLabel.tag = 100
+        
         let arrow = UIImageView(image: UIImage(named: "chevron"))
         arrow.tintColor = Colors.gray
         
@@ -179,6 +182,7 @@ final class HabitCreationViewController: UIViewController {
         }
     }
     
+    // MARK: Data Handling
     private func addSubviews() {
         [titleLabel, inputContainer, categoryButton, scheduleButton, cancelButton, createButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -194,7 +198,7 @@ final class HabitCreationViewController: UIViewController {
             inputContainer.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
             inputContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             inputContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            inputContainer.heightAnchor.constraint(equalToConstant: 75 + 30), // Высота текстового поля + место для ошибки
+            inputContainer.heightAnchor.constraint(equalToConstant: 75 + 30),
             
             nameTextField.topAnchor.constraint(equalTo: inputContainer.topAnchor),
             nameTextField.leadingAnchor.constraint(equalTo: inputContainer.leadingAnchor),
@@ -241,7 +245,7 @@ final class HabitCreationViewController: UIViewController {
     
     private func setupTextField() {
         nameTextField.delegate = self
-        nameTextField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
+        nameTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
     }
     
     private func resetErrorState() {
@@ -299,6 +303,7 @@ final class HabitCreationViewController: UIViewController {
         }
         updateCreateButtonState()
     }
+    
     @objc private func createButtonTapped() {
         guard let name = nameTextField.text, !name.isEmpty else { return }
         
