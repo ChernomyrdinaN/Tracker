@@ -19,6 +19,7 @@ final class HabitCreationViewController: UIViewController {
     private let scheduleButton = UIButton()
     private let cancelButton = UIButton()
     private let createButton = UIButton()
+    private let keyboardHandler = KeyboardHandler()
     
     // MARK: - Properties
     private let maxHabitNameLength = 38
@@ -30,7 +31,8 @@ final class HabitCreationViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         setupConstraints()
-        setupTextField()
+        keyboardHandler.setup(for: self)
+        nameTextField.delegate = keyboardHandler
     }
     
     // MARK: - UI Setup
@@ -78,6 +80,8 @@ final class HabitCreationViewController: UIViewController {
         nameTextField.leftViewMode = .always
         nameTextField.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 41, height: 75))
         nameTextField.rightViewMode = .always
+        
+        nameTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged) 
     }
     
     private func configureClearButton() {
@@ -243,11 +247,6 @@ final class HabitCreationViewController: UIViewController {
         createButton.backgroundColor = isValid ? Colors.blue : Colors.gray
     }
     
-    private func setupTextField() {
-        nameTextField.delegate = self
-        nameTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
-    }
-    
     private func resetErrorState() {
         errorLabel.isHidden = true
         view.constraints.first {
@@ -310,11 +309,11 @@ final class HabitCreationViewController: UIViewController {
         let newTracker = Tracker(
             id: UUID(),
             name: name,
-            color: "Color selection 5",
-            emoji: "🌿",
+            color: "Color selection 12",
+            emoji: "👩‍💻",
             schedule: Array(selectedSchedule),
             isRegular: !selectedSchedule.isEmpty,
-            colorAssetName: "Color selection 5"
+            colorAssetName: "Color selection 12"
         )
         
         onTrackerCreated?(newTracker)
@@ -334,13 +333,5 @@ final class HabitCreationViewController: UIViewController {
     
     @objc private func cancelButtonTapped() {
         dismiss(animated: true)
-    }
-}
-
-// MARK: - UITextFieldDelegate
-extension HabitCreationViewController: UITextFieldDelegate {
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
-        return true
     }
 }

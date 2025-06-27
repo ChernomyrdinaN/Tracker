@@ -15,6 +15,7 @@ final class TrackersViewController: UIViewController {
     private let errorImageView = UIImageView()
     private let trackLabel = UILabel()
     private let datePicker = UIDatePicker()
+    private let keyboardHandler = KeyboardHandler()
     private let collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         let collection = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -54,6 +55,8 @@ final class TrackersViewController: UIViewController {
         setupCollectionView()
         setupNavigationBar()
         setupDefaultData()
+        keyboardHandler.setup(for: self)
+        searchField.delegate = keyboardHandler
     }
     
     // MARK: - UI Setup
@@ -130,17 +133,17 @@ final class TrackersViewController: UIViewController {
     private func setupDefaultData() {
         let defaultTracker = Tracker(
             id: UUID(),
-            name: "Поливать растения",
-            color: "Color selection 5",
-            emoji: "🌱",
+            name: "Позаниматься проектом",
+            color: "Color selection 12",
+            emoji: "👩‍💻",
             schedule: [.monday, .wednesday, .friday],
             isRegular: true,
-            colorAssetName: "Color selection 5"
+            colorAssetName: "Color selection 12"
         )
         
         let defaultCategory = TrackerCategory(
             id: UUID(),
-            title: "Домашний уют",
+            title: "Образование",
             trackers: [defaultTracker]
         )
         
@@ -281,12 +284,43 @@ extension TrackersViewController: UICollectionViewDataSource {
         
         return cell
     }
+}
+
+// MARK: - UICollectionViewDelegateFlowLayout
+extension TrackersViewController: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView,
+                       layout collectionViewLayout: UICollectionViewLayout,
+                       sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let availableWidth = collectionView.bounds.width - 32 - 9
+        let width = availableWidth / 2
+        return CGSize(width: width, height: 148)
+    }
     
-    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+    func collectionView(_ collectionView: UICollectionView,
+                       layout collectionViewLayout: UICollectionViewLayout,
+                       insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView,
+                       layout collectionViewLayout: UICollectionViewLayout,
+                       minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return 16
+    }
+    
+    func collectionView(_ collectionView: UICollectionView,
+                       layout collectionViewLayout: UICollectionViewLayout,
+                       minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 9
+    }
+    
+    func collectionView(_ collectionView: UICollectionView,
+                       viewForSupplementaryElementOfKind kind: String,
+                       at indexPath: IndexPath) -> UICollectionReusableView {
         guard kind == UICollectionView.elementKindSectionHeader,
               let header = collectionView.dequeueReusableSupplementaryView(
                 ofKind: kind,
-                withReuseIdentifier: "header",
+                withReuseIdentifier: TrackerSectionHeader.reuseIdentifier,
                 for: indexPath
               ) as? TrackerSectionHeader else {
             return UICollectionReusableView()
@@ -295,52 +329,10 @@ extension TrackersViewController: UICollectionViewDataSource {
         header.titleLabel.text = categories[indexPath.section].title
         return header
     }
-}
-
-// MARK: - UICollectionViewDelegateFlowLayout
-extension TrackersViewController: UICollectionViewDelegateFlowLayout {
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: 167, height: 148)
-    }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        return UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 16
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return 9
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+    func collectionView(_ collectionView: UICollectionView,
+                       layout collectionViewLayout: UICollectionViewLayout,
+                       referenceSizeForHeaderInSection section: Int) -> CGSize {
         return CGSize(width: collectionView.bounds.width, height: 46)
-    }
-}
-
-final class TrackerSectionHeader: UICollectionReusableView {
-    let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 19, weight: .bold)
-        label.textColor = Colors.black
-        return label
-    }()
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        addSubview(titleLabel)
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        NSLayoutConstraint.activate([
-            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
-            titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 16),
-            titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12)
-        ])
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 }
