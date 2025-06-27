@@ -4,6 +4,7 @@
 //
 //  Created by Наталья Черномырдина on 27.06.2025.
 //
+
 import UIKit
 
 final class TrackerSectionHeader: UICollectionReusableView {
@@ -11,7 +12,7 @@ final class TrackerSectionHeader: UICollectionReusableView {
     
     let titleLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 19, weight: .bold)
+        label.font = .systemFont(ofSize: 19, weight: .bold)
         label.textColor = Colors.black
         return label
     }()

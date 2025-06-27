@@ -3,9 +3,8 @@
 //  Tracker
 //
 //  Created by Наталья Черномырдина on 18.06.2025.
-//  Модель для создания и хранения трекеров (привычек)
+//  Модель для создания и хранения трекеров
 
-import Foundation
 import UIKit
 
 struct Tracker {
@@ -13,8 +12,8 @@ struct Tracker {
     let name: String
     let color: String
     let emoji: String
-    let schedule: [WeekDay]? // nil для нерегулярных событий
-    let isRegular: Bool // true для привычки, false для нерегулярного события
+    let schedule: [WeekDay]?
+    let isRegular: Bool
     let colorAssetName: String
 }
 
@@ -50,4 +49,13 @@ enum WeekDay: String, CaseIterable {
         case .saturday: return 7
         }
     }
+}
+
+// Эти данные используются только для демонстрации работы приложения
+struct TrackerDefaults {
+    static let defaultEmoji = "👩‍💻"
+    static let defaultColor = "Color selection 12"
+    static let defaultSchedule: [WeekDay] = [.monday, .wednesday, .friday]
+    static let defaultTrackerName = "Позаниматься проектом"
+    static let defaultCategoryTitle = "Образование"
 }

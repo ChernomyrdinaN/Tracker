@@ -127,7 +127,7 @@ final class TrackerCell: UICollectionViewCell {
         
         let isFutureDate = currentDate > Date()
         plusButton.isEnabled = !isFutureDate
-        plusButton.alpha = isFutureDate ? 0.5 : 1.0
+        plusButton.alpha = (isCompletedToday || isFutureDate) ? 0.3 : 1.0
     }
     
     private func formattedDaysCount(_ count: Int) -> String {

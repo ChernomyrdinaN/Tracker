@@ -24,6 +24,7 @@ final class HabitCreationViewController: UIViewController {
     // MARK: - Properties
     private let maxHabitNameLength = 38
     private var selectedSchedule: Set<WeekDay> = []
+    private let defaultCategory = TrackerDefaults.defaultCategoryTitle
     var onTrackerCreated: ((Tracker) -> Void)?
     
     // MARK: - Lifecycle
@@ -33,6 +34,7 @@ final class HabitCreationViewController: UIViewController {
         setupConstraints()
         keyboardHandler.setup(for: self)
         nameTextField.delegate = keyboardHandler
+        updateCategoryButtonTitle()
     }
     
     // MARK: - UI Setup
@@ -49,7 +51,6 @@ final class HabitCreationViewController: UIViewController {
     
     // MARK: - Private Methods
     
-    // MARK: Configuration
     private func configureTitleLabel() {
         titleLabel.text = "Новая привычка"
         titleLabel.font = .systemFont(ofSize: 16, weight: .medium)
@@ -81,7 +82,7 @@ final class HabitCreationViewController: UIViewController {
         nameTextField.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 41, height: 75))
         nameTextField.rightViewMode = .always
         
-        nameTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged) 
+        nameTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
     }
     
     private func configureClearButton() {
@@ -101,6 +102,7 @@ final class HabitCreationViewController: UIViewController {
     
     private func configureCategoryButton() {
         setupButton(categoryButton, title: "Категория", isFirst: true)
+        categoryButton.addTarget(self, action: #selector(categoryButtonTapped), for: .touchUpInside)
     }
     
     private func configureScheduleButton() {
@@ -186,6 +188,30 @@ final class HabitCreationViewController: UIViewController {
         }
     }
     
+    private func updateCategoryButtonTitle() {
+        guard let container = categoryButton.subviews.first,
+              let titleLabel = container.viewWithTag(100) as? UILabel else {
+            return
+        }
+        titleLabel.text = "Категория"
+    }
+    
+    private func updateScheduleButtonTitle() {
+        guard let container = scheduleButton.subviews.first,
+              let titleLabel = container.viewWithTag(100) as? UILabel else {
+            return
+        }
+        
+        if selectedSchedule.isEmpty {
+            titleLabel.text = "Расписание"
+        } else if selectedSchedule.count == WeekDay.allCases.count {
+            titleLabel.text = "Каждый день"
+        } else {
+            let shortNames = selectedSchedule.sorted(by: { $0.calendarIndex < $1.calendarIndex }).map { $0.shortName }
+            titleLabel.text = shortNames.joined(separator: ", ")
+        }
+    }
+    
     // MARK: Data Handling
     private func addSubviews() {
         [titleLabel, inputContainer, categoryButton, scheduleButton, cancelButton, createButton].forEach {
@@ -258,22 +284,6 @@ final class HabitCreationViewController: UIViewController {
         }
     }
     
-    private func updateScheduleButtonTitle() {
-        guard let container = scheduleButton.subviews.first,
-              let titleLabel = container.viewWithTag(100) as? UILabel else {
-            return
-        }
-        
-        if selectedSchedule.isEmpty {
-            titleLabel.text = "Расписание"
-        } else if selectedSchedule.count == WeekDay.allCases.count {
-            titleLabel.text = "Каждый день"
-        } else {
-            let shortNames = selectedSchedule.sorted(by: { $0.calendarIndex < $1.calendarIndex }).map { $0.shortName }
-            titleLabel.text = shortNames.joined(separator: ", ")
-        }
-    }
-    
     // MARK: - Actions
     @objc private func clearTextField() {
         nameTextField.text = ""
@@ -309,15 +319,25 @@ final class HabitCreationViewController: UIViewController {
         let newTracker = Tracker(
             id: UUID(),
             name: name,
-            color: "Color selection 12",
-            emoji: "👩‍💻",
+            color: TrackerDefaults.defaultColor,
+            emoji: TrackerDefaults.defaultEmoji,
             schedule: Array(selectedSchedule),
             isRegular: !selectedSchedule.isEmpty,
-            colorAssetName: "Color selection 12"
+            colorAssetName: TrackerDefaults.defaultColor
         )
         
         onTrackerCreated?(newTracker)
         dismiss(animated: true)
+    }
+    
+    @objc private func categoryButtonTapped() {
+        let alert = UIAlertController(
+            title: "Выбор категории",
+            message: "Функционал выбора категории будет добавлен после подключения базы данных",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
     
     @objc private func scheduleButtonTapped() {
