@@ -21,10 +21,35 @@ final class HabitCreationViewController: UIViewController {
     private let createButton = UIButton()
     private let keyboardHandler = KeyboardHandler()
     
+    private let scheduleLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "Расписание"
+        label.textColor = Colors.black
+        label.font = .systemFont(ofSize: 17)
+        return label
+    }()
+    
+    private let scheduleValueLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = Colors.gray
+        label.font = .systemFont(ofSize: 17)
+        return label
+    }()
+    
+    private let scheduleStackView: UIStackView = {
+        let stack = UIStackView()
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .vertical
+        stack.alignment = .leading
+        stack.spacing = 2
+        return stack
+    }()
+    
     // MARK: - Properties
     private let maxHabitNameLength = 38
     private var selectedSchedule: Set<WeekDay> = []
-    private let defaultCategory = TrackerDefaults.defaultCategoryTitle
     var onTrackerCreated: ((Tracker) -> Void)?
     
     // MARK: - Lifecycle
@@ -106,7 +131,42 @@ final class HabitCreationViewController: UIViewController {
     }
     
     private func configureScheduleButton() {
-        setupButton(scheduleButton, title: "Расписание", isFirst: false)
+        let container = UIView()
+        container.isUserInteractionEnabled = false
+        
+        scheduleStackView.addArrangedSubview(scheduleLabel)
+        scheduleStackView.addArrangedSubview(scheduleValueLabel)
+        container.addSubview(scheduleStackView)
+        
+        let arrow = UIImageView(image: UIImage(named: "chevron"))
+        arrow.tintColor = Colors.gray
+        
+        container.addSubview(arrow)
+        
+        scheduleStackView.translatesAutoresizingMaskIntoConstraints = false
+        arrow.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            scheduleStackView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            scheduleStackView.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            arrow.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            arrow.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            arrow.leadingAnchor.constraint(equalTo: scheduleStackView.trailingAnchor, constant: -32)
+        ])
+        
+        scheduleButton.addSubview(container)
+        container.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            container.leadingAnchor.constraint(equalTo: scheduleButton.leadingAnchor, constant: 16),
+            container.trailingAnchor.constraint(equalTo: scheduleButton.trailingAnchor, constant: -16),
+            container.centerYAnchor.constraint(equalTo: scheduleButton.centerYAnchor),
+            container.heightAnchor.constraint(equalTo: scheduleButton.heightAnchor)
+        ])
+        
+        scheduleButton.backgroundColor = Colors.background
+        scheduleButton.layer.cornerRadius = 16
+        scheduleButton.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
         scheduleButton.addTarget(self, action: #selector(scheduleButtonTapped), for: .touchUpInside)
     }
     
@@ -123,13 +183,20 @@ final class HabitCreationViewController: UIViewController {
     
     private func configureCreateButton() {
         createButton.setTitle("Создать", for: .normal)
-        createButton.backgroundColor = Colors.gray
+        
         createButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         createButton.setTitleColor(Colors.white, for: .normal)
-        createButton.isEnabled = false
         createButton.layer.cornerRadius = 16
+        createButton.layer.masksToBounds = true
+        
+        createButton.backgroundColor = Colors.gray
+        createButton.setBackgroundColor(Colors.black ?? .black,for: .normal)
+        createButton.setBackgroundColor(Colors.black ?? .black,for: .highlighted)
+        
+        createButton.isEnabled = false
         createButton.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
     }
+    
     
     private func setupButton(_ button: UIButton, title: String, isFirst: Bool) {
         let container = UIView()
@@ -197,18 +264,13 @@ final class HabitCreationViewController: UIViewController {
     }
     
     private func updateScheduleButtonTitle() {
-        guard let container = scheduleButton.subviews.first,
-              let titleLabel = container.viewWithTag(100) as? UILabel else {
-            return
-        }
-        
         if selectedSchedule.isEmpty {
-            titleLabel.text = "Расписание"
+            scheduleValueLabel.text = nil
         } else if selectedSchedule.count == WeekDay.allCases.count {
-            titleLabel.text = "Каждый день"
+            scheduleValueLabel.text = "Каждый день"
         } else {
             let shortNames = selectedSchedule.sorted(by: { $0.calendarIndex < $1.calendarIndex }).map { $0.shortName }
-            titleLabel.text = shortNames.joined(separator: ", ")
+            scheduleValueLabel.text = shortNames.joined(separator: ", ")
         }
     }
     
@@ -319,11 +381,11 @@ final class HabitCreationViewController: UIViewController {
         let newTracker = Tracker(
             id: UUID(),
             name: name,
-            color: TrackerDefaults.defaultColor,
-            emoji: TrackerDefaults.defaultEmoji,
+            color: "Color selection 12",
+            emoji: "👩🏻",
             schedule: Array(selectedSchedule),
             isRegular: !selectedSchedule.isEmpty,
-            colorAssetName: TrackerDefaults.defaultColor
+            colorAssetName: "Color selection 12"
         )
         
         onTrackerCreated?(newTracker)
@@ -353,5 +415,15 @@ final class HabitCreationViewController: UIViewController {
     
     @objc private func cancelButtonTapped() {
         dismiss(animated: true)
+    }
+}
+
+extension UIButton {
+    func setBackgroundColor(_ color: UIColor, for state: UIControl.State) {
+        let image = UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1)).image { context in
+            color.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
+        }
+        setBackgroundImage(image, for: state)
     }
 }

@@ -50,12 +50,3 @@ enum WeekDay: String, CaseIterable {
         }
     }
 }
-
-// Эти данные используются только для демонстрации работы приложения
-struct TrackerDefaults {
-    static let defaultEmoji = "👩‍💻"
-    static let defaultColor = "Color selection 12"
-    static let defaultSchedule: [WeekDay] = [.monday, .wednesday, .friday]
-    static let defaultTrackerName = "Позаниматься проектом"
-    static let defaultCategoryTitle = "Образование"
-}
