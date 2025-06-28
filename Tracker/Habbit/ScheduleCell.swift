@@ -12,7 +12,7 @@ final class ScheduleCell: UITableViewCell {
     // MARK: - UI Elements
     private let titleLabel = UILabel()
     private let switchControl = UISwitch()
-
+    
     // MARK: - Properties
     static let reuseIdentifier = "ScheduleCell"
     var onSwitchChanged: ((Bool) -> Void)?

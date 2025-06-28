@@ -5,6 +5,13 @@
 //  Created by Наталья Черномырдина on 14.06.2025.
 //
 
+//
+//  TrackersViewController.swift
+//  Tracker
+//
+//  Created by Наталья Черномырдина on 14.06.2025.
+//
+
 import UIKit
 
 final class TrackersViewController: UIViewController {
@@ -88,7 +95,7 @@ final class TrackersViewController: UIViewController {
         collection.register(
             TrackerSectionHeader.self,
             forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
-            withReuseIdentifier: "header"
+            withReuseIdentifier: TrackerSectionHeader.reuseIdentifier
         )
         collection.backgroundColor = Colors.white
         collection.dataSource = self
@@ -105,6 +112,7 @@ final class TrackersViewController: UIViewController {
             action: #selector(addButtonTapped)
         )
         button.tintColor = Colors.black
+        button.imageInsets = UIEdgeInsets(top: 0, left: -10, bottom: 0, right: 0)
         return button
     }()
     
@@ -146,6 +154,7 @@ final class TrackersViewController: UIViewController {
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 1),
             titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            titleLabel.heightAnchor.constraint(equalToConstant: 34),
             
             searchField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 7),
             searchField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
@@ -254,16 +263,6 @@ extension TrackersViewController: UICollectionViewDataSource {
         
         return cell
     }
-    
-    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        let header = collectionView.dequeueReusableSupplementaryView(
-            ofKind: kind,
-            withReuseIdentifier: "header",
-            for: indexPath
-        ) as! TrackerSectionHeader
-        header.titleLabel.text = filteredCategories[indexPath.section].title
-        return header
-    }
 }
 
 // MARK: - UICollectionViewDelegateFlowLayout
@@ -271,26 +270,47 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let availableWidth = collectionView.bounds.width - 16 * 3
-        let cellWidth = availableWidth / 2
-        return CGSize(width: cellWidth, height: 148)
+        return CGSize(width: (collectionView.bounds.width - 41) / 2, height: 148)
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
-                        insetForSectionAt section: Int) -> UIEdgeInsets {
-        UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
+                        minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 9
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        16
+        return 16
+    }
+    
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets(top: section == 0 ? 12 : 16, left: 16, bottom: 16, right: 16)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView,
+                        viewForSupplementaryElementOfKind kind: String,
+                        at indexPath: IndexPath) -> UICollectionReusableView {
+        guard kind == UICollectionView.elementKindSectionHeader,
+              let header = collectionView.dequeueReusableSupplementaryView(
+                ofKind: kind,
+                withReuseIdentifier: TrackerSectionHeader.reuseIdentifier,
+                for: indexPath
+              ) as? TrackerSectionHeader else {
+            return UICollectionReusableView()
+        }
+        
+        let category = filteredCategories[indexPath.section]
+        header.configure(with: category.title)
+        return header
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         referenceSizeForHeaderInSection section: Int) -> CGSize {
-        CGSize(width: collectionView.bounds.width, height: 46)
+        return CGSize(width: collectionView.bounds.width, height: 32)
     }
 }

@@ -117,8 +117,8 @@ extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
         }
         
         cell.separatorInset = indexPath.row == daysOfWeek.count - 1 ?
-            UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude) :
-            UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude) :
+        UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         
         return cell
     }

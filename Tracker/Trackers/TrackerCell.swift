@@ -93,6 +93,7 @@ final class TrackerCell: UICollectionViewCell {
     private func setupViews() {
         [containerView, emojiBackground, emojiLabel, titleLabel, daysLabel, plusButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
+            $0.isUserInteractionEnabled = true
         }
         
         contentView.addSubview(containerView)
@@ -103,11 +104,13 @@ final class TrackerCell: UICollectionViewCell {
         contentView.addSubview(plusButton)
         
         NSLayoutConstraint.activate([
+            // Основной контейнер (цветная часть)
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor),
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             containerView.heightAnchor.constraint(equalToConstant: 90),
             
+            // Эмодзи
             emojiBackground.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
             emojiBackground.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
             emojiBackground.widthAnchor.constraint(equalToConstant: 24),
@@ -116,29 +119,33 @@ final class TrackerCell: UICollectionViewCell {
             emojiLabel.centerXAnchor.constraint(equalTo: emojiBackground.centerXAnchor),
             emojiLabel.centerYAnchor.constraint(equalTo: emojiBackground.centerYAnchor),
             
+            // Заголовок трекера
             titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
             titleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
             titleLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -12),
             
+            // Счетчик дней
             daysLabel.topAnchor.constraint(equalTo: containerView.bottomAnchor, constant: 16),
             daysLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
+            daysLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
             
-            plusButton.centerYAnchor.constraint(equalTo: daysLabel.centerYAnchor),
+            // Кнопка +
             plusButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
+            plusButton.centerYAnchor.constraint(equalTo: daysLabel.centerYAnchor),
             plusButton.widthAnchor.constraint(equalToConstant: 34),
-            plusButton.heightAnchor.constraint(equalTo: plusButton.widthAnchor)
+            plusButton.heightAnchor.constraint(equalToConstant: 34)
         ])
     }
     
     private func updatePlusButton() {
         let imageName = isCompletedToday ? "checkmark" : "plus"
         plusButton.setImage(UIImage(systemName: imageName), for: .normal)
-        plusButton.backgroundColor = containerView.backgroundColor
+        plusButton.backgroundColor = containerView.backgroundColor?.withAlphaComponent(isCompletedToday ? 0.3 : 1.0)
         plusButton.tintColor = Colors.white
         
         let isFutureDate = currentDate > Date()
         plusButton.isEnabled = !isFutureDate
-        plusButton.alpha = (isCompletedToday || isFutureDate) ? 0.3 : 1.0
+        plusButton.alpha = isFutureDate ? 0.3 : 1.0
     }
     
     private func formattedDaysCount(_ count: Int) -> String {
