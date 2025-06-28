@@ -68,7 +68,6 @@ final class TrackerCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
-        setupConstraints()
     }
     
     required init?(coder: NSCoder) {
@@ -92,21 +91,17 @@ final class TrackerCell: UICollectionViewCell {
     
     // MARK: - Private Methods
     private func setupViews() {
-        [containerView, daysLabel, plusButton].forEach {
+        [containerView, emojiBackground, emojiLabel, titleLabel, daysLabel, plusButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
-            contentView.addSubview($0)
         }
         
-        [emojiBackground, titleLabel].forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            containerView.addSubview($0)
-        }
-        
+        contentView.addSubview(containerView)
+        containerView.addSubview(emojiBackground)
         emojiBackground.addSubview(emojiLabel)
-        emojiLabel.translatesAutoresizingMaskIntoConstraints = false
-    }
-    
-    private func setupConstraints() {
+        containerView.addSubview(titleLabel)
+        contentView.addSubview(daysLabel)
+        contentView.addSubview(plusButton)
+        
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor),
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
@@ -125,13 +120,13 @@ final class TrackerCell: UICollectionViewCell {
             titleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
             titleLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -12),
             
-            daysLabel.topAnchor.constraint(equalTo: containerView.bottomAnchor, constant: 8),
+            daysLabel.topAnchor.constraint(equalTo: containerView.bottomAnchor, constant: 16),
             daysLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
             
-            plusButton.topAnchor.constraint(equalTo: containerView.bottomAnchor, constant: 8),
+            plusButton.centerYAnchor.constraint(equalTo: daysLabel.centerYAnchor),
             plusButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
             plusButton.widthAnchor.constraint(equalToConstant: 34),
-            plusButton.heightAnchor.constraint(equalToConstant: 34)
+            plusButton.heightAnchor.constraint(equalTo: plusButton.widthAnchor)
         ])
     }
     
