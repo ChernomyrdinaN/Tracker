@@ -8,17 +8,55 @@
 import UIKit
 
 final class TrackerCell: UICollectionViewCell {
+    static let identifier = "TrackerCell"
     
     // MARK: - UI Elements
-    private let containerView = UIView()
-    private let emojiBackground = UIView()
-    private let emojiLabel = UILabel()
-    private let titleLabel = UILabel()
-    private let daysLabel = UILabel()
-    private let plusButton = UIButton()
+    private let containerView: UIView = {
+        let view = UIView()
+        view.layer.cornerRadius = 16
+        view.clipsToBounds = true
+        return view
+    }()
+    
+    private let emojiBackground: UIView = {
+        let view = UIView()
+        view.layer.cornerRadius = 12
+        view.clipsToBounds = true
+        view.backgroundColor = Colors.white?.withAlphaComponent(0.3)
+        return view
+    }()
+    
+    private let emojiLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 16)
+        label.textAlignment = .center
+        return label
+    }()
+    
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 12, weight: .medium)
+        label.textColor = Colors.white
+        label.numberOfLines = 2
+        return label
+    }()
+    
+    private let daysLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 12, weight: .medium)
+        label.textColor = Colors.black
+        return label
+    }()
+    
+    private lazy var plusButton: UIButton = {
+        let button = UIButton()
+        button.layer.cornerRadius = 17
+        button.clipsToBounds = true
+        button.addTarget(self, action: #selector(plusButtonTapped), for: .touchUpInside)
+        return button
+    }()
     
     // MARK: - Properties
-    static let identifier = "TrackerCell"
     private var trackerId: UUID?
     private var completedDays = 0
     private var currentDate = Date()
@@ -29,8 +67,8 @@ final class TrackerCell: UICollectionViewCell {
     // MARK: - Lifecycle
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupUI()
-        setupButtonActions()
+        setupViews()
+        setupConstraints()
     }
     
     required init?(coder: NSCoder) {
@@ -39,13 +77,12 @@ final class TrackerCell: UICollectionViewCell {
     
     // MARK: - Public Methods
     func configure(with tracker: Tracker, completedDays: Int, isCompletedToday: Bool, currentDate: Date) {
-        self.trackerId = tracker.id
+        trackerId = tracker.id
         self.completedDays = completedDays
         self.isCompletedToday = isCompletedToday
         self.currentDate = currentDate
         
         containerView.backgroundColor = UIColor(named: tracker.colorAssetName)
-        emojiBackground.backgroundColor = Colors.white?.withAlphaComponent(0.3)
         emojiLabel.text = tracker.emoji
         titleLabel.text = tracker.name
         daysLabel.text = formattedDaysCount(completedDays)
@@ -54,26 +91,7 @@ final class TrackerCell: UICollectionViewCell {
     }
     
     // MARK: - Private Methods
-    private func setupUI() {
-        containerView.layer.cornerRadius = 16
-        containerView.clipsToBounds = true
-        
-        emojiBackground.layer.cornerRadius = 12
-        emojiBackground.clipsToBounds = true
-        
-        emojiLabel.font = .systemFont(ofSize: 16)
-        emojiLabel.textAlignment = .center
-        
-        titleLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        titleLabel.textColor = Colors.white
-        titleLabel.numberOfLines = 2
-        
-        daysLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        daysLabel.textColor = Colors.black
-        
-        plusButton.layer.cornerRadius = 17
-        plusButton.clipsToBounds = true
-        
+    private func setupViews() {
         [containerView, daysLabel, plusButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             contentView.addSubview($0)
@@ -84,9 +102,11 @@ final class TrackerCell: UICollectionViewCell {
             containerView.addSubview($0)
         }
         
-        emojiLabel.translatesAutoresizingMaskIntoConstraints = false
         emojiBackground.addSubview(emojiLabel)
-        
+        emojiLabel.translatesAutoresizingMaskIntoConstraints = false
+    }
+    
+    private func setupConstraints() {
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor),
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
@@ -113,10 +133,6 @@ final class TrackerCell: UICollectionViewCell {
             plusButton.widthAnchor.constraint(equalToConstant: 34),
             plusButton.heightAnchor.constraint(equalToConstant: 34)
         ])
-    }
-    
-    private func setupButtonActions() {
-        plusButton.addTarget(self, action: #selector(plusButtonTapped), for: .touchUpInside)
     }
     
     private func updatePlusButton() {

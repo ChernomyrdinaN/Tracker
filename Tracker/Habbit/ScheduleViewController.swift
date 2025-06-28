@@ -10,10 +10,35 @@ import UIKit
 final class ScheduleViewController: UIViewController {
     
     // MARK: - UI Elements
-    private let mainView = UIView()
-    private let titleLabel = UILabel()
-    private let tableView = UITableView()
-    private let doneButton = UIButton()
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Расписание"
+        label.font = .systemFont(ofSize: 16, weight: .medium)
+        label.textColor = Colors.black
+        label.textAlignment = .center
+        return label
+    }()
+    
+    private let tableView: UITableView = {
+        let table = UITableView()
+        table.register(ScheduleCell.self, forCellReuseIdentifier: ScheduleCell.reuseIdentifier)
+        table.isScrollEnabled = false
+        table.layer.cornerRadius = 16
+        table.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        table.separatorColor = Colors.gray
+        return table
+    }()
+    
+    private lazy var doneButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("Готово", for: .normal)
+        button.backgroundColor = Colors.black
+        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
+        button.setTitleColor(Colors.white, for: .normal)
+        button.layer.cornerRadius = 16
+        button.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
+        return button
+    }()
     
     // MARK: - Properties
     private let daysOfWeek = WeekDay.allCases
@@ -23,60 +48,23 @@ final class ScheduleViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
+        view.backgroundColor = Colors.white
+        setupViews()
         setupConstraints()
+        setupTableView()
     }
     
-    // MARK: - UI Setup
-    private func setupUI() {
-        view.backgroundColor = Colors.white
-        mainView.backgroundColor = Colors.white
-        
-        configureTitleLabel()
-        configureTableView()
-        configureDoneButton()
-        
-        [mainView, titleLabel, tableView, doneButton].forEach {
+    // MARK: - Private Methods
+    private func setupViews() {
+        [titleLabel, tableView, doneButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
     }
     
-    private func configureTitleLabel() {
-        titleLabel.text = "Расписание"
-        titleLabel.font = .systemFont(ofSize: 16, weight: .medium)
-        titleLabel.textColor = Colors.black
-        titleLabel.textAlignment = .center
-    }
-    
-    private func configureTableView() {
-        tableView.register(ScheduleCell.self, forCellReuseIdentifier: ScheduleCell.reuseIdentifier)
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.isScrollEnabled = false
-        tableView.layer.cornerRadius = 16
-        tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-        tableView.separatorColor = Colors.gray
-    }
-    
-    private func configureDoneButton() {
-        doneButton.setTitle("Готово", for: .normal)
-        doneButton.backgroundColor = Colors.black
-        doneButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
-        doneButton.setTitleColor(Colors.white, for: .normal)
-        doneButton.layer.cornerRadius = 16
-        doneButton.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
-    }
-    
-    // MARK: - Constraints
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            mainView.topAnchor.constraint(equalTo: view.topAnchor),
-            mainView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 27),
+            titleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 27),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
             tableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 24),
@@ -91,6 +79,11 @@ final class ScheduleViewController: UIViewController {
         ])
     }
     
+    private func setupTableView() {
+        tableView.dataSource = self
+        tableView.delegate = self
+    }
+    
     // MARK: - Actions
     @objc private func doneButtonTapped() {
         onScheduleSelected?(selectedDays)
@@ -101,7 +94,7 @@ final class ScheduleViewController: UIViewController {
 // MARK: - UITableViewDataSource & UITableViewDelegate
 extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return daysOfWeek.count
+        daysOfWeek.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -123,16 +116,14 @@ extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
             }
         }
         
-        if indexPath.row == daysOfWeek.count - 1 {
-            cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
-        } else {
-            cell.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-        }
+        cell.separatorInset = indexPath.row == daysOfWeek.count - 1 ?
+            UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude) :
+            UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         
         return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 75
+        75
     }
 }
