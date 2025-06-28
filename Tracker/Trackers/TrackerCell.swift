@@ -10,7 +10,6 @@ import UIKit
 final class TrackerCell: UICollectionViewCell {
     static let identifier = "TrackerCell"
     
-    // MARK: - UI Elements
     private let containerView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 16
@@ -56,7 +55,6 @@ final class TrackerCell: UICollectionViewCell {
         return button
     }()
     
-    // MARK: - Properties
     private var trackerId: UUID?
     private var completedDays = 0
     private var currentDate = Date()
@@ -64,7 +62,6 @@ final class TrackerCell: UICollectionViewCell {
     
     var onPlusButtonTapped: ((UUID, Date, Bool) -> Void)?
     
-    // MARK: - Lifecycle
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
@@ -74,7 +71,6 @@ final class TrackerCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: - Public Methods
     func configure(with tracker: Tracker, completedDays: Int, isCompletedToday: Bool, currentDate: Date) {
         trackerId = tracker.id
         self.completedDays = completedDays
@@ -89,7 +85,6 @@ final class TrackerCell: UICollectionViewCell {
         updatePlusButton()
     }
     
-    // MARK: - Private Methods
     private func setupViews() {
         [containerView, emojiBackground, emojiLabel, titleLabel, daysLabel, plusButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -104,13 +99,11 @@ final class TrackerCell: UICollectionViewCell {
         contentView.addSubview(plusButton)
         
         NSLayoutConstraint.activate([
-            // Основной контейнер (цветная часть)
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor),
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             containerView.heightAnchor.constraint(equalToConstant: 90),
             
-            // Эмодзи
             emojiBackground.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
             emojiBackground.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
             emojiBackground.widthAnchor.constraint(equalToConstant: 24),
@@ -119,17 +112,14 @@ final class TrackerCell: UICollectionViewCell {
             emojiLabel.centerXAnchor.constraint(equalTo: emojiBackground.centerXAnchor),
             emojiLabel.centerYAnchor.constraint(equalTo: emojiBackground.centerYAnchor),
             
-            // Заголовок трекера
             titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
             titleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
             titleLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -12),
             
-            // Счетчик дней
             daysLabel.topAnchor.constraint(equalTo: containerView.bottomAnchor, constant: 16),
             daysLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
             daysLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
             
-            // Кнопка +
             plusButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
             plusButton.centerYAnchor.constraint(equalTo: daysLabel.centerYAnchor),
             plusButton.widthAnchor.constraint(equalToConstant: 34),
@@ -163,7 +153,6 @@ final class TrackerCell: UICollectionViewCell {
         }
     }
     
-    // MARK: - Actions
     @objc private func plusButtonTapped() {
         guard let trackerId = trackerId else { return }
         

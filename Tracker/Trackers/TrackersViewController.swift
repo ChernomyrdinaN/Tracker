@@ -5,18 +5,9 @@
 //  Created by Наталья Черномырдина on 14.06.2025.
 //
 
-//
-//  TrackersViewController.swift
-//  Tracker
-//
-//  Created by Наталья Черномырдина on 14.06.2025.
-//
-
 import UIKit
 
 final class TrackersViewController: UIViewController {
-    
-    // MARK: - Properties
     private let keyboardHandler = KeyboardHandler()
     private var isEmptyState = false {
         didSet {
@@ -43,7 +34,6 @@ final class TrackersViewController: UIViewController {
         }.filter { !$0.trackers.isEmpty }
     }
     
-    // MARK: - UI Elements
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Трекеры"
@@ -103,7 +93,6 @@ final class TrackersViewController: UIViewController {
         return collection
     }()
     
-    // MARK: - Navigation Elements
     private lazy var addButton: UIBarButtonItem = {
         let button = UIBarButtonItem(
             image: UIImage(named: "add_tracker") ?? UIImage(systemName: "plus"),
@@ -130,7 +119,6 @@ final class TrackersViewController: UIViewController {
         return UIBarButtonItem(customView: datePicker)
     }()
     
-    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -142,7 +130,6 @@ final class TrackersViewController: UIViewController {
         }
     }
     
-    // MARK: - Setup Methods
     private func setupUI() {
         view.backgroundColor = Colors.white
         
@@ -184,12 +171,6 @@ final class TrackersViewController: UIViewController {
         searchField.delegate = keyboardHandler
     }
     
-    private func setupCollectionView() {
-        collectionView.dataSource = self
-        collectionView.delegate = self
-    }
-    
-    // MARK: - Helper Methods
     private func isTrackerVisible(_ tracker: Tracker, for date: Date) -> Bool {
         guard tracker.isRegular else { return true }
         let calendar = Calendar.current
@@ -203,7 +184,6 @@ final class TrackersViewController: UIViewController {
         }
     }
     
-    // MARK: - Actions
     @objc private func addButtonTapped() {
         let habitVC = HabitCreationViewController()
         habitVC.modalPresentationStyle = .formSheet
@@ -231,7 +211,6 @@ final class TrackersViewController: UIViewController {
     }
 }
 
-// MARK: - UICollectionViewDataSource
 extension TrackersViewController: UICollectionViewDataSource {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         filteredCategories.count
@@ -265,7 +244,6 @@ extension TrackersViewController: UICollectionViewDataSource {
     }
 }
 
-// MARK: - UICollectionViewDelegateFlowLayout
 extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,

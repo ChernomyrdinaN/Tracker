@@ -8,8 +8,6 @@
 import UIKit
 
 final class ScheduleViewController: UIViewController {
-    
-    // MARK: - UI Elements
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Расписание"
@@ -40,12 +38,10 @@ final class ScheduleViewController: UIViewController {
         return button
     }()
     
-    // MARK: - Properties
     private let daysOfWeek = WeekDay.allCases
     var selectedDays: Set<WeekDay> = []
     var onScheduleSelected: ((Set<WeekDay>) -> Void)?
     
-    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = Colors.white
@@ -54,7 +50,6 @@ final class ScheduleViewController: UIViewController {
         setupTableView()
     }
     
-    // MARK: - Private Methods
     private func setupViews() {
         [titleLabel, tableView, doneButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -84,14 +79,12 @@ final class ScheduleViewController: UIViewController {
         tableView.delegate = self
     }
     
-    // MARK: - Actions
     @objc private func doneButtonTapped() {
         onScheduleSelected?(selectedDays)
         dismiss(animated: true)
     }
 }
 
-// MARK: - UITableViewDataSource & UITableViewDelegate
 extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         daysOfWeek.count

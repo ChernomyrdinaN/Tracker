@@ -4,12 +4,9 @@
 //
 //  Created by Наталья Черномырдина on 19.06.2025.
 //
-
 import UIKit
 
 final class HabitCreationViewController: UIViewController {
-    
-    // MARK: - UI Elements
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Новая привычка"
@@ -66,7 +63,6 @@ final class HabitCreationViewController: UIViewController {
     
     private lazy var scheduleButton: UIButton = {
         let button = UIButton()
-        
         let container = UIView()
         container.isUserInteractionEnabled = false
         
@@ -150,13 +146,11 @@ final class HabitCreationViewController: UIViewController {
         return stack
     }()
     
-    // MARK: - Properties
     private let maxHabitNameLength = 38
     private var selectedSchedule: Set<WeekDay> = []
     private let keyboardHandler = KeyboardHandler()
     var onTrackerCreated: ((Tracker) -> Void)?
     
-    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = Colors.white
@@ -168,7 +162,6 @@ final class HabitCreationViewController: UIViewController {
         nameTextField.delegate = keyboardHandler
     }
     
-    // MARK: - Private Methods
     private func setupViews() {
         [titleLabel, inputContainer, categoryButton, scheduleButton, buttonsStack].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -320,7 +313,6 @@ final class HabitCreationViewController: UIViewController {
         }
     }
     
-    // MARK: - Actions
     @objc private func clearTextField() {
         nameTextField.text = ""
         clearTextFieldButton.isHidden = true
