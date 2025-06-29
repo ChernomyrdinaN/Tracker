@@ -8,6 +8,7 @@
 import UIKit
 
 final class TrackerSectionHeader: UICollectionReusableView {
+    
     static let reuseIdentifier = "header"
     
     let titleLabel: UILabel = {

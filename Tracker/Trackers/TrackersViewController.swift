@@ -8,6 +8,9 @@
 import UIKit
 
 final class TrackersViewController: UIViewController {
+    
+    // MARK: - Properties
+    
     private let keyboardHandler = KeyboardHandler()
     private var isEmptyState = false {
         didSet {
@@ -33,6 +36,8 @@ final class TrackersViewController: UIViewController {
             return TrackerCategory(id: category.id, title: category.title, trackers: filteredTrackers)
         }.filter { !$0.trackers.isEmpty }
     }
+    
+    // MARK: - UI Elements
     
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -119,6 +124,8 @@ final class TrackersViewController: UIViewController {
         return UIBarButtonItem(customView: datePicker)
     }()
     
+    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -129,6 +136,8 @@ final class TrackersViewController: UIViewController {
             self.isEmptyState = self.filteredCategories.isEmpty
         }
     }
+    
+    // MARK: - Setup Methods
     
     private func setupUI() {
         view.backgroundColor = Colors.white
@@ -171,6 +180,8 @@ final class TrackersViewController: UIViewController {
         searchField.delegate = keyboardHandler
     }
     
+    // MARK: - Helper Methods
+    
     private func isTrackerVisible(_ tracker: Tracker, for date: Date) -> Bool {
         guard tracker.isRegular else { return true }
         let calendar = Calendar.current
@@ -184,23 +195,36 @@ final class TrackersViewController: UIViewController {
         }
     }
     
+    // MARK: - Actions
+    
     @objc private func addButtonTapped() {
         let habitVC = HabitCreationViewController()
         habitVC.modalPresentationStyle = .formSheet
         
         habitVC.onTrackerCreated = { [weak self] newTracker in
-            if let firstCategoryIndex = self?.categories.firstIndex(where: { $0.title == "Образование" }) {
-                self?.categories[firstCategoryIndex].trackers.append(newTracker)
+            guard let self = self else { return }
+            
+            if let firstCategoryIndex = self.categories.firstIndex(where: { $0.title == "Образование" }) {
+                let oldCategory = self.categories[firstCategoryIndex]
+                let newCategory = TrackerCategory(
+                    id: oldCategory.id,
+                    title: oldCategory.title,
+                    trackers: oldCategory.trackers + [newTracker]
+                )
+                self.categories = self.categories.enumerated().map { index, category in
+                    index == firstCategoryIndex ? newCategory : category
+                }
             } else {
                 let newCategory = TrackerCategory(
                     id: UUID(),
                     title: "Образование",
                     trackers: [newTracker]
                 )
-                self?.categories.append(newCategory)
+                self.categories.append(newCategory)
             }
-            self?.collectionView.reloadData()
-            self?.isEmptyState = self?.filteredCategories.isEmpty ?? true
+            
+            self.collectionView.reloadData()
+            self.isEmptyState = self.filteredCategories.isEmpty
         }
         
         present(UINavigationController(rootViewController: habitVC), animated: true)
@@ -211,17 +235,25 @@ final class TrackersViewController: UIViewController {
     }
 }
 
+// MARK: - UICollectionViewDataSource
+
 extension TrackersViewController: UICollectionViewDataSource {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        filteredCategories.count
+        return filteredCategories.count
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        filteredCategories[section].trackers.count
+        return filteredCategories[section].trackers.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TrackerCell", for: indexPath) as! TrackerCell
+        guard let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: "TrackerCell",
+            for: indexPath
+        ) as? TrackerCell else {
+            return UICollectionViewCell()
+        }
+        
         let tracker = filteredCategories[indexPath.section].trackers[indexPath.item]
         
         cell.configure(
@@ -232,10 +264,12 @@ extension TrackersViewController: UICollectionViewDataSource {
         )
         
         cell.onPlusButtonTapped = { [weak self] trackerId, date, isCompleted in
+            guard let self = self else { return }
+            
             if isCompleted {
-                self?.completedTrackers.append(TrackerRecord(trackerId: trackerId, date: date))
+                self.completedTrackers.append(TrackerRecord(trackerId: trackerId, date: date))
             } else {
-                self?.completedTrackers.removeAll { $0.trackerId == trackerId && Calendar.current.isDate($0.date, inSameDayAs: date) }
+                self.completedTrackers.removeAll { $0.trackerId == trackerId && Calendar.current.isDate($0.date, inSameDayAs: date) }
             }
             collectionView.reloadData()
         }
@@ -243,6 +277,8 @@ extension TrackersViewController: UICollectionViewDataSource {
         return cell
     }
 }
+
+// MARK: - UICollectionViewDelegateFlowLayout
 
 extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,

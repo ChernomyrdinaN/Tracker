@@ -8,6 +8,7 @@
 import UIKit
 
 final class TrackerCell: UICollectionViewCell {
+    
     static let identifier = "TrackerCell"
     
     private let containerView: UIView = {

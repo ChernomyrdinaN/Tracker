@@ -7,6 +7,8 @@
 import UIKit
 
 final class HabitCreationViewController: UIViewController {
+    
+    // MARK: - UI Elements
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Новая привычка"

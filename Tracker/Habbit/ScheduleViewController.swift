@@ -8,6 +8,8 @@
 import UIKit
 
 final class ScheduleViewController: UIViewController {
+    
+    // MARK: - UI Elements
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Расписание"
