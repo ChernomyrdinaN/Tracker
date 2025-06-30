@@ -9,8 +9,10 @@ import UIKit
 
 final class TrackerCell: UICollectionViewCell {
     
+    // MARK: - Static Properties
     static let identifier = "TrackerCell"
     
+    // MARK: - UI Properties
     private let containerView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 16
@@ -56,22 +58,27 @@ final class TrackerCell: UICollectionViewCell {
         return button
     }()
     
+    // MARK: - Private Properties
     private var trackerId: UUID?
     private var completedDays = 0
     private var currentDate = Date()
     private var isCompletedToday = false
     
+    // MARK: - Public Properties
     var onPlusButtonTapped: ((UUID, Date, Bool) -> Void)?
     
+    // MARK: - Initialization
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
+        setupConstraints()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Public Methods
     func configure(with tracker: Tracker, completedDays: Int, isCompletedToday: Bool, currentDate: Date) {
         trackerId = tracker.id
         self.completedDays = completedDays
@@ -86,6 +93,7 @@ final class TrackerCell: UICollectionViewCell {
         updatePlusButton()
     }
     
+    // MARK: - Private Methods
     private func setupViews() {
         [containerView, emojiBackground, emojiLabel, titleLabel, daysLabel, plusButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -98,7 +106,9 @@ final class TrackerCell: UICollectionViewCell {
         containerView.addSubview(titleLabel)
         contentView.addSubview(daysLabel)
         contentView.addSubview(plusButton)
-        
+    }
+    
+    private func setupConstraints() {
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor),
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
@@ -154,6 +164,7 @@ final class TrackerCell: UICollectionViewCell {
         }
     }
     
+    // MARK: - Actions
     @objc private func plusButtonTapped() {
         guard let trackerId = trackerId else { return }
         

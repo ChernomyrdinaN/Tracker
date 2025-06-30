@@ -7,7 +7,6 @@
 
 import UIKit
 
-// MARK: - Public Methods
 final class KeyboardHandler: NSObject, UITextFieldDelegate {
     func setup(for viewController: UIViewController) {
         let tapGesture = UITapGestureRecognizer(target: viewController.view, action: #selector(UIView.endEditing))

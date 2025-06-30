@@ -10,7 +10,6 @@ import UIKit
 final class TrackersViewController: UIViewController {
     
     // MARK: - Properties
-    
     private let keyboardHandler = KeyboardHandler()
     private var isEmptyState = false {
         didSet {
@@ -38,7 +37,6 @@ final class TrackersViewController: UIViewController {
     }
     
     // MARK: - UI Elements
-    
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Трекеры"
@@ -125,7 +123,6 @@ final class TrackersViewController: UIViewController {
     }()
     
     // MARK: - Lifecycle
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -138,7 +135,6 @@ final class TrackersViewController: UIViewController {
     }
     
     // MARK: - Setup Methods
-    
     private func setupUI() {
         view.backgroundColor = Colors.white
         
@@ -181,7 +177,6 @@ final class TrackersViewController: UIViewController {
     }
     
     // MARK: - Helper Methods
-    
     private func isTrackerVisible(_ tracker: Tracker, for date: Date) -> Bool {
         guard tracker.isRegular else { return true }
         let calendar = Calendar.current
@@ -196,7 +191,6 @@ final class TrackersViewController: UIViewController {
     }
     
     // MARK: - Actions
-    
     @objc private func addButtonTapped() {
         let habitVC = HabitCreationViewController()
         habitVC.modalPresentationStyle = .formSheet
@@ -236,7 +230,6 @@ final class TrackersViewController: UIViewController {
 }
 
 // MARK: - UICollectionViewDataSource
-
 extension TrackersViewController: UICollectionViewDataSource {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         return filteredCategories.count
@@ -279,7 +272,6 @@ extension TrackersViewController: UICollectionViewDataSource {
 }
 
 // MARK: - UICollectionViewDelegateFlowLayout
-
 extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
