@@ -23,7 +23,7 @@ final class TrackerTabBarController: UITabBarController {
         let trackersNavVC = UINavigationController(rootViewController: trackersVC)
         trackersVC.tabBarItem = UITabBarItem(
             title: "Трекеры",
-            image: UIImage(named: "trackers_icon"),
+            image: UIImage(resource: .trackersIcon),
             selectedImage: nil
         )
         
@@ -31,7 +31,7 @@ final class TrackerTabBarController: UITabBarController {
         let statisticsNavVC = UINavigationController(rootViewController: statisticsVC)
         statisticsVC.tabBarItem = UITabBarItem(
             title: "Статистика",
-            image: UIImage(named: "statistics_icon"),
+            image: UIImage(resource: .statisticsIcon),
             selectedImage: nil
         )
         

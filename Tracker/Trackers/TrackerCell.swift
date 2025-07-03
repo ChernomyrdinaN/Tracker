@@ -24,7 +24,7 @@ final class TrackerCell: UICollectionViewCell {
         let view = UIView()
         view.layer.cornerRadius = 12
         view.clipsToBounds = true
-        view.backgroundColor = Colors.white?.withAlphaComponent(0.3)
+        view.backgroundColor = Colors.white.withAlphaComponent(0.3)
         return view
     }()
     

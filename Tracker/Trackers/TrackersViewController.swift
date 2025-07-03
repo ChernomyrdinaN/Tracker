@@ -47,26 +47,31 @@ final class TrackersViewController: UIViewController {
     
     private let searchField: UITextField = {
         let field = UITextField()
+        field.placeholder = "Поиск"
         field.backgroundColor = Colors.searchFieldBackground
         field.font = .systemFont(ofSize: 17)
-        field.textColor = Colors.searchTextColor
+        field.textColor = Colors.black
+        field.tintColor = Colors.black
         field.layer.cornerRadius = 10
-        field.placeholder = "Поиск"
         
-        let iconView = UIImageView(image: UIImage(systemName: "magnifyingglass"))
-        iconView.tintColor = Colors.gray
+        
         let container = UIView(frame: CGRect(x: 0, y: 0, width: 30, height: 36))
-        iconView.frame = CGRect(x: 8, y: 10, width: 16, height: 16)
-        container.addSubview(iconView)
         
+        let icon = UIImage(systemName: "magnifyingglass")?.withRenderingMode(.alwaysTemplate)
+        let iconView = UIImageView(image: icon)
+        iconView.tintColor = Colors.gray
+        iconView.frame = CGRect(x: 8, y: 10, width: 16, height: 16)
+        
+        container.addSubview(iconView)
         field.leftView = container
         field.leftViewMode = .always
+        
         return field
     }()
     
-    private let errorImageView: UIImageView = {
+    private lazy var errorImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(named: "ilerror1")
+        imageView.image = UIImage(resource: .ilError1)
         imageView.contentMode = .scaleAspectFit
         imageView.isHidden = true
         return imageView
@@ -98,7 +103,7 @@ final class TrackersViewController: UIViewController {
     
     private lazy var addButton: UIBarButtonItem = {
         let button = UIBarButtonItem(
-            image: UIImage(named: "add_tracker") ?? UIImage(systemName: "plus"),
+            image: UIImage(resource: .addTracker),
             style: .plain,
             target: self,
             action: #selector(addButtonTapped)
@@ -196,7 +201,7 @@ final class TrackersViewController: UIViewController {
         habitVC.modalPresentationStyle = .formSheet
         
         habitVC.onTrackerCreated = { [weak self] newTracker in
-            guard let self = self else { return }
+            guard let self else { return }
             
             if let firstCategoryIndex = self.categories.firstIndex(where: { $0.title == "Образование" }) {
                 let oldCategory = self.categories[firstCategoryIndex]
@@ -230,6 +235,8 @@ final class TrackersViewController: UIViewController {
 }
 
 // MARK: - UICollectionViewDataSource
+
+
 extension TrackersViewController: UICollectionViewDataSource {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         return filteredCategories.count
@@ -257,7 +264,7 @@ extension TrackersViewController: UICollectionViewDataSource {
         )
         
         cell.onPlusButtonTapped = { [weak self] trackerId, date, isCompleted in
-            guard let self = self else { return }
+            guard let self else { return }
             
             if isCompleted {
                 self.completedTrackers.append(TrackerRecord(trackerId: trackerId, date: date))
