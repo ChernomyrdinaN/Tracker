@@ -10,14 +10,21 @@ import UIKit
 final class ColorCollectionView: UICollectionView {
     
     // MARK: - Properties
-    var selectedColor: UIColor?
+    var selectedColor: UIColor? {
+        didSet {
+            reloadData()
+            selectedColor.map { didSelectColor?($0) }
+        }
+    }
     var didSelectColor: ((UIColor) -> Void)?
     
-    private let identifier = "ColorCell"
-    private let itemsPerRow: CGFloat = 6
-    private let sectionInsets = UIEdgeInsets(top: 24, left: 0, bottom: 24, right: 0)
-    private let itemSize: CGSize = CGSize(width: 52, height: 52)
-    private let spacing: CGFloat = 5
+    private let identifier = ColorCell.identifier
+    private enum Layout {
+        static let itemsPerRow: CGFloat = 6
+        static let itemSize = CGSize(width: 40, height: 40)
+        static let sectionInsets = UIEdgeInsets(top: 24, left: 0, bottom: 24, right: 0)
+        static let lineSpacing: CGFloat = 5
+    }
     
     // MARK: - Initialization
     init() {
@@ -30,26 +37,28 @@ final class ColorCollectionView: UICollectionView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: - Private Methods
     private func setupCollectionView() {
         register(ColorCell.self, forCellWithReuseIdentifier: identifier)
         dataSource = self
         delegate = self
         isScrollEnabled = false
         allowsMultipleSelection = false
-        backgroundColor = .clear
+    }
+    
+    private var interitemSpacing: CGFloat {
+        let availableWidth = bounds.width - Layout.sectionInsets.left - Layout.sectionInsets.right
+        let totalItemsWidth = Layout.itemsPerRow * Layout.itemSize.width
+        return (availableWidth - totalItemsWidth) / (Layout.itemsPerRow - 1)
     }
 }
 
-// MARK: - UICollectionViewDataSource
+// MARK: - DataSource & Delegate
 extension ColorCollectionView: UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView,
-                        numberOfItemsInSection section: Int) -> Int {
-        return Colors.trackerColors.count
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        Colors.trackerColors.count
     }
     
-    func collectionView(_ collectionView: UICollectionView,
-                        cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: identifier,
             for: indexPath
@@ -63,43 +72,27 @@ extension ColorCollectionView: UICollectionViewDataSource {
     }
 }
 
-// MARK: - UICollectionViewDelegate
 extension ColorCollectionView: UICollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView,
-                        didSelectItemAt indexPath: IndexPath) {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         selectedColor = Colors.trackerColors[indexPath.row]
-        didSelectColor?(selectedColor!)
-        reloadData()
+        collectionView.reloadData()
     }
 }
 
-// MARK: - UICollectionViewDelegateFlowLayout
 extension ColorCollectionView: UICollectionViewDelegateFlowLayout {
-    func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return itemSize
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        Layout.itemSize
     }
     
-    func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        insetForSectionAt section: Int) -> UIEdgeInsets {
-        return sectionInsets
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        Layout.sectionInsets
     }
     
-    func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        let availableWidth = collectionView.bounds.width - sectionInsets.left - sectionInsets.right
-        
-        let totalItemsWidth = itemsPerRow * itemSize.width
-        let totalSpacing = availableWidth - totalItemsWidth
-        return totalSpacing / (itemsPerRow - 1)
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        interitemSpacing
     }
     
-    func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return spacing
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        Layout.lineSpacing
     }
 }

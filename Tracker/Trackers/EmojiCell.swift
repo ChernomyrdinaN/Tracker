@@ -9,10 +9,13 @@ import UIKit
 
 final class EmojiCell: UICollectionViewCell {
     
-    // MARK: - Static Properties
     static let identifier = "EmojiCell"
     
-    // MARK: - UI Properties
+    private enum Constants {
+        static let size: CGFloat = 52
+        static let cornerRadius: CGFloat = 16
+    }
+    
     private let emojiLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 32)
@@ -21,10 +24,9 @@ final class EmojiCell: UICollectionViewCell {
         return label
     }()
     
-    // MARK: - Initialization
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupViews()
+        contentView.addSubview(emojiLabel)
         setupConstraints()
     }
     
@@ -32,30 +34,20 @@ final class EmojiCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: - Public Methods
     func configure(with emoji: String, isSelected: Bool) {
-        emojiLabel.text = emoji
-        if isSelected {
-            backgroundColor = Colors.lightGray
-            layer.cornerRadius = 16
-            layer.masksToBounds = true
-        } else {
-            backgroundColor = .clear
-            layer.cornerRadius = 0
-        }
-    }
+           emojiLabel.text = emoji
     
-    // MARK: - Private Methods
-    private func setupViews() {
-        contentView.addSubview(emojiLabel)
-    }
+           contentView.backgroundColor = isSelected ? UIColor.lightGray : .clear
+           contentView.layer.cornerRadius = isSelected ? 16 : 0
+           contentView.layer.masksToBounds = isSelected
+       }
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             emojiLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             emojiLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            emojiLabel.widthAnchor.constraint(equalToConstant: 52),
-            emojiLabel.heightAnchor.constraint(equalToConstant: 52)
+            emojiLabel.widthAnchor.constraint(equalToConstant: Constants.size),
+            emojiLabel.heightAnchor.constraint(equalToConstant: Constants.size)
         ])
     }
 }

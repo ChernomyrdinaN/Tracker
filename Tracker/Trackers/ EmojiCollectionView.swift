@@ -4,7 +4,6 @@
 //
 //  Created by Наталья Черномырдина on 04.07.2025.
 //
-
 import UIKit
 
 final class EmojiCollectionView: UICollectionView {
@@ -12,15 +11,19 @@ final class EmojiCollectionView: UICollectionView {
     // MARK: - Properties
     var selectedEmoji: String?
     var didSelectEmoji: ((String) -> Void)?
+    var onEmojiSelected: ((String) -> Void)?
     
     private let emojis = [
         "🙂", "😻", "🌺", "🐶", "❤️", "😱", "😇", "😡", "🥶",
         "🤔", "🙌", "🍔", "🥦", "🏓", "🥇", "🎸", "🏝", "😪"
     ]
-    private let itemsPerRow: CGFloat = 6
-    private let sectionInsets = UIEdgeInsets(top: 24, left: 0, bottom: 24, right: 0)
-    private let itemSize: CGSize = CGSize(width: 52, height: 52)
-    private let spacing: CGFloat = 5
+    
+    private enum Layout {
+        static let itemsPerRow: CGFloat = 6
+        static let itemSize = CGSize(width: 52, height: 52)
+        static let sectionInsets = UIEdgeInsets(top: 24, left: 0, bottom: 24, right: 0)
+        static let spacing: CGFloat = 5
+    }
     
     // MARK: - Initialization
     init() {
@@ -42,6 +45,12 @@ final class EmojiCollectionView: UICollectionView {
         allowsMultipleSelection = false
         backgroundColor = .clear
     }
+    
+    private var interitemSpacing: CGFloat {
+        let availableWidth = bounds.width - Layout.sectionInsets.left - Layout.sectionInsets.right
+        let totalItemsWidth = Layout.itemsPerRow * Layout.itemSize.width
+        return (availableWidth - totalItemsWidth) / (Layout.itemsPerRow - 1)
+    }
 }
 
 // MARK: - UICollectionViewDataSource
@@ -61,6 +70,7 @@ extension EmojiCollectionView: UICollectionViewDataSource {
         }
         
         let emoji = emojis[indexPath.row]
+        _ = emoji == selectedEmoji
         cell.configure(with: emoji, isSelected: emoji == selectedEmoji)
         return cell
     }
@@ -68,11 +78,13 @@ extension EmojiCollectionView: UICollectionViewDataSource {
 
 // MARK: - UICollectionViewDelegate
 extension EmojiCollectionView: UICollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView,
-                        didSelectItemAt indexPath: IndexPath) {
-        selectedEmoji = emojis[indexPath.row]
-        didSelectEmoji?(selectedEmoji!)
-        reloadData()
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let selected = emojis[indexPath.row]
+        
+        selectedEmoji = selected
+        onEmojiSelected?(selected)
+        
+        collectionView.reloadData()
     }
 }
 
@@ -81,24 +93,24 @@ extension EmojiCollectionView: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: 52, height: 52)
+        Layout.itemSize
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         insetForSectionAt section: Int) -> UIEdgeInsets {
-        return UIEdgeInsets(top: 24, left: 0, bottom: 24, right: 0)
+        Layout.sectionInsets
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return 5
+        interitemSpacing
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 5
+        Layout.spacing
     }
 }

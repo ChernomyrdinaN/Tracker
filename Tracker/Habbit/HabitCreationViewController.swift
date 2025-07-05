@@ -175,7 +175,6 @@ final class HabitCreationViewController: UIViewController {
     
     private let colorCollectionView = ColorCollectionView()
     
-    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -186,6 +185,16 @@ final class HabitCreationViewController: UIViewController {
         
         keyboardHandler.setup(for: self)
         nameTextField.delegate = keyboardHandler
+        
+        emojiCollectionView.onEmojiSelected = { [weak self] emoji in
+            self?.selectedEmoji = emoji
+            self?.updateCreateButtonState()
+        }
+        
+        colorCollectionView.didSelectColor = { [weak self] color in
+            self?.selectedColor = color
+            self?.updateCreateButtonState()
+        }
     }
     
     // MARK: - Private Methods
@@ -203,6 +212,7 @@ final class HabitCreationViewController: UIViewController {
          buttonsStack].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             contentView.addSubview($0)
+            
         }
     }
     
@@ -332,20 +342,9 @@ final class HabitCreationViewController: UIViewController {
     
     private func updateCreateButtonState() {
         let text = nameTextField.text ?? ""
-        let isValid = !text.isEmpty && text.count <= maxHabitNameLength
+        let isValid = !text.isEmpty && text.count <= maxHabitNameLength && selectedEmoji != nil && selectedColor != nil
         createButton.isEnabled = isValid
         createButton.backgroundColor = isValid ? Colors.blue : Colors.gray
-    }
-    
-    private func resetErrorState() {
-        errorLabel.isHidden = true
-        view.constraints.first {
-            $0.firstItem as? UIButton == categoryButton && $0.firstAttribute == .top
-        }?.constant = 24
-        
-        UIView.animate(withDuration: 0.3) {
-            self.view.layoutIfNeeded()
-        }
     }
     
     private func updateScheduleButtonTitle() {
@@ -384,16 +383,20 @@ final class HabitCreationViewController: UIViewController {
     }
     
     @objc private func createButtonTapped() {
-        guard let name = nameTextField.text, !name.isEmpty else { return }
+        guard let name = nameTextField.text,
+              let selectedEmoji = selectedEmoji,
+              let selectedColor = selectedColor else { return }
+        
+        let colorName = Colors.colorName(for: selectedColor) ?? "Color selection 1"
         
         let newTracker = Tracker(
             id: UUID(),
             name: name,
-            color: "Color selection 12",
-            emoji: "👩🏽‍💻",
+            color: colorName,
+            emoji: selectedEmoji,
             schedule: Array(selectedSchedule),
             isRegular: !selectedSchedule.isEmpty,
-            colorAssetName: "Color selection 12"
+            colorAssetName: colorName
         )
         
         onTrackerCreated?(newTracker)
@@ -414,10 +417,8 @@ final class HabitCreationViewController: UIViewController {
         let scheduleVC = ScheduleViewController()
         scheduleVC.selectedDays = selectedSchedule
         scheduleVC.onScheduleSelected = { [weak self] days in
-            guard let self = self else { return }
-            self.selectedSchedule = days
-            self.selectedSchedule = days
-            self.updateScheduleButtonTitle()
+            self?.selectedSchedule = days
+            self?.updateScheduleButtonTitle()
         }
         let navVC = UINavigationController(rootViewController: scheduleVC)
         present(navVC, animated: true)
@@ -435,5 +436,11 @@ extension UIButton {
             context.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
         }
         setBackgroundImage(image, for: state)
+    }
+}
+
+extension Colors {
+    static func colorName(for color: UIColor) -> String? {
+        trackerColors.firstIndex { $0.isEqual(color) }.map { "Color selection \($0 + 1)" }
     }
 }
