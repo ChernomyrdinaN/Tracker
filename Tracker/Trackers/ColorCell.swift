@@ -21,6 +21,15 @@ final class ColorCell: UICollectionViewCell {
         return view
     }()
     
+    private let selectionBorderView: UIView = {
+        let view = UIView()
+        view.layer.cornerRadius = 8
+        view.layer.borderWidth = 3
+        view.isHidden = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
     // MARK: - Initialization
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -35,14 +44,14 @@ final class ColorCell: UICollectionViewCell {
     // MARK: - Public Methods
     func configure(with color: UIColor, isSelected: Bool) {
         colorView.backgroundColor = color
-        contentView.layer.borderWidth = isSelected ? 3 : 0
-        contentView.layer.borderColor = isSelected ? color.withAlphaComponent(0.3).cgColor : nil
-        contentView.layer.cornerRadius = 8
+        selectionBorderView.layer.borderColor = color.withAlphaComponent(0.3).cgColor
+        selectionBorderView.isHidden = !isSelected
     }
     
     // MARK: - Private Methods
     private func setupViews() {
         contentView.addSubview(colorView)
+        contentView.addSubview(selectionBorderView)
         contentView.clipsToBounds = true
     }
     
@@ -50,8 +59,13 @@ final class ColorCell: UICollectionViewCell {
         NSLayoutConstraint.activate([
             colorView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             colorView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            colorView.widthAnchor.constraint(equalToConstant: 40),
-            colorView.heightAnchor.constraint(equalToConstant: 40)
+            colorView.widthAnchor.constraint(equalToConstant: 52),
+            colorView.heightAnchor.constraint(equalToConstant: 52),
+            
+            selectionBorderView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            selectionBorderView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            selectionBorderView.widthAnchor.constraint(equalToConstant: 46),
+            selectionBorderView.heightAnchor.constraint(equalToConstant: 46)
         ])
     }
 }

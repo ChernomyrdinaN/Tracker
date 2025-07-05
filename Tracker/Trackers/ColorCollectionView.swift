@@ -16,12 +16,12 @@ final class ColorCollectionView: UICollectionView {
     private let identifier = "ColorCell"
     private let itemsPerRow: CGFloat = 6
     private let sectionInsets = UIEdgeInsets(top: 24, left: 0, bottom: 24, right: 0)
+    private let itemSize: CGSize = CGSize(width: 52, height: 52)
+    private let spacing: CGFloat = 5
     
     // MARK: - Initialization
     init() {
         let layout = UICollectionViewFlowLayout()
-        layout.minimumInteritemSpacing = 0
-        layout.minimumLineSpacing = 0
         super.init(frame: .zero, collectionViewLayout: layout)
         setupCollectionView()
     }
@@ -45,7 +45,7 @@ final class ColorCollectionView: UICollectionView {
 extension ColorCollectionView: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView,
                         numberOfItemsInSection section: Int) -> Int {
-        Colors.trackerColors.count
+        return Colors.trackerColors.count
     }
     
     func collectionView(_ collectionView: UICollectionView,
@@ -78,9 +78,7 @@ extension ColorCollectionView: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let totalWidth = collectionView.bounds.width
-        let itemWidth = (totalWidth - sectionInsets.left - sectionInsets.right) / itemsPerRow
-        return CGSize(width: itemWidth, height: itemWidth)
+        return itemSize
     }
     
     func collectionView(_ collectionView: UICollectionView,
@@ -92,12 +90,16 @@ extension ColorCollectionView: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return 0
+        let availableWidth = collectionView.bounds.width - sectionInsets.left - sectionInsets.right
+        
+        let totalItemsWidth = itemsPerRow * itemSize.width
+        let totalSpacing = availableWidth - totalItemsWidth
+        return totalSpacing / (itemsPerRow - 1)
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 0
+        return spacing
     }
 }

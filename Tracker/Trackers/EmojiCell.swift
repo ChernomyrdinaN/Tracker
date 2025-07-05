@@ -35,8 +35,14 @@ final class EmojiCell: UICollectionViewCell {
     // MARK: - Public Methods
     func configure(with emoji: String, isSelected: Bool) {
         emojiLabel.text = emoji
-        backgroundColor = isSelected ? Colors.lightGray : .clear
-        layer.cornerRadius = isSelected ? 16 : 0
+        if isSelected {
+            backgroundColor = Colors.lightGray
+            layer.cornerRadius = 16
+            layer.masksToBounds = true
+        } else {
+            backgroundColor = .clear
+            layer.cornerRadius = 0
+        }
     }
     
     // MARK: - Private Methods
@@ -47,7 +53,9 @@ final class EmojiCell: UICollectionViewCell {
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             emojiLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            emojiLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+            emojiLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            emojiLabel.widthAnchor.constraint(equalToConstant: 52),
+            emojiLabel.heightAnchor.constraint(equalToConstant: 52)
         ])
     }
 }

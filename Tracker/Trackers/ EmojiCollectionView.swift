@@ -1,5 +1,5 @@
 //
-//   EmojiCollectionView.swift
+//  EmojiCollectionView.swift
 //  Tracker
 //
 //  Created by Наталья Черномырдина on 04.07.2025.
@@ -17,9 +17,10 @@ final class EmojiCollectionView: UICollectionView {
         "🙂", "😻", "🌺", "🐶", "❤️", "😱", "😇", "😡", "🥶",
         "🤔", "🙌", "🍔", "🥦", "🏓", "🥇", "🎸", "🏝", "😪"
     ]
-    
     private let itemsPerRow: CGFloat = 6
     private let sectionInsets = UIEdgeInsets(top: 24, left: 0, bottom: 24, right: 0)
+    private let itemSize: CGSize = CGSize(width: 52, height: 52)
+    private let spacing: CGFloat = 5
     
     // MARK: - Initialization
     init() {
@@ -39,6 +40,7 @@ final class EmojiCollectionView: UICollectionView {
         delegate = self
         isScrollEnabled = false
         allowsMultipleSelection = false
+        backgroundColor = .clear
     }
 }
 
@@ -65,7 +67,6 @@ extension EmojiCollectionView: UICollectionViewDataSource {
 }
 
 // MARK: - UICollectionViewDelegate
-
 extension EmojiCollectionView: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView,
                         didSelectItemAt indexPath: IndexPath) {
@@ -80,26 +81,24 @@ extension EmojiCollectionView: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let totalWidth = collectionView.bounds.width
-        let itemWidth = (totalWidth - sectionInsets.left - sectionInsets.right) / itemsPerRow
-        return CGSize(width: itemWidth, height: itemWidth)
+        return CGSize(width: 52, height: 52)
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         insetForSectionAt section: Int) -> UIEdgeInsets {
-        return sectionInsets
+        return UIEdgeInsets(top: 24, left: 0, bottom: 24, right: 0)
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return 0
+        return 5
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 0
+        return 5
     }
 }
