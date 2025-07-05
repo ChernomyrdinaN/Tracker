@@ -10,7 +10,9 @@ import UIKit
 final class TrackersViewController: UIViewController {
     
     // MARK: - Properties
+    
     private let keyboardHandler = KeyboardHandler()
+    
     private var isEmptyState = false {
         didSet {
             errorImageView.isHidden = !isEmptyState
@@ -27,6 +29,7 @@ final class TrackersViewController: UIViewController {
     }
     
     private var categories: [TrackerCategory] = []
+    
     private var completedTrackers: [TrackerRecord] = []
     
     private var filteredCategories: [TrackerCategory] {
@@ -35,7 +38,7 @@ final class TrackersViewController: UIViewController {
             return TrackerCategory(id: category.id, title: category.title, trackers: filteredTrackers)
         }.filter { !$0.trackers.isEmpty }
     }
-    
+  
     // MARK: - UI Elements
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -129,9 +132,11 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
+        view.backgroundColor = Colors.white
         super.viewDidLoad()
         setupUI()
         setupNavigationBar()
+        setupConstraints()
         setupKeyboardHandler()
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -141,13 +146,13 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Setup Methods
     private func setupUI() {
-        view.backgroundColor = Colors.white
-        
         [titleLabel, searchField, errorImageView, trackLabel, collectionView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
+    }
         
+    private func setupConstraints() {
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 1),
             titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
@@ -235,8 +240,6 @@ final class TrackersViewController: UIViewController {
 }
 
 // MARK: - UICollectionViewDataSource
-
-
 extension TrackersViewController: UICollectionViewDataSource {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         return filteredCategories.count

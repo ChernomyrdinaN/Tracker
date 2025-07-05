@@ -9,6 +9,12 @@ import UIKit
 
 final class HabitCreationViewController: UIViewController {
     
+    // MARK: - Properties
+    private let maxHabitNameLength = 38
+    private var selectedSchedule: Set<WeekDay> = []
+    private let keyboardHandler = KeyboardHandler()
+    var onTrackerCreated: ((Tracker) -> Void)?
+    
     // MARK: - UI Elements
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -17,12 +23,6 @@ final class HabitCreationViewController: UIViewController {
         label.textColor = Colors.black
         label.textAlignment = .center
         return label
-    }()
-    
-    private let inputContainer: UIView = {
-        let view = UIView()
-        view.backgroundColor = .clear
-        return view
     }()
     
     private let nameTextField: UITextField = {
@@ -117,6 +117,7 @@ final class HabitCreationViewController: UIViewController {
         button.layer.masksToBounds = true
         return button
     }()
+    
     private let createButton: UIButton = {
         let button = UIButton()
         button.setTitle("Создать", for: .normal)
@@ -138,12 +139,7 @@ final class HabitCreationViewController: UIViewController {
         return stack
     }()
     
-    // MARK: - Properties
-    private let maxHabitNameLength = 38
-    private var selectedSchedule: Set<WeekDay> = []
-    private let keyboardHandler = KeyboardHandler()
-    var onTrackerCreated: ((Tracker) -> Void)?
-    
+   
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -158,53 +154,43 @@ final class HabitCreationViewController: UIViewController {
     
     // MARK: - Private Methods
     private func setupViews() {
-        [titleLabel, inputContainer, categoryButton, scheduleButton, buttonsStack].forEach {
+        [titleLabel, categoryButton, scheduleButton, buttonsStack,nameTextField, errorLabel].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
-        }
-        
-        [nameTextField, errorLabel].forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            inputContainer.addSubview($0)
         }
     }
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-          
+            
             titleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 27),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            inputContainer.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
-            inputContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            inputContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            inputContainer.heightAnchor.constraint(equalToConstant: 75),
-      
-            nameTextField.topAnchor.constraint(equalTo: inputContainer.topAnchor),
-            nameTextField.leadingAnchor.constraint(equalTo: inputContainer.leadingAnchor),
-            nameTextField.trailingAnchor.constraint(equalTo: inputContainer.trailingAnchor),
+            nameTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
+            nameTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            nameTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             nameTextField.heightAnchor.constraint(equalToConstant: 75),
-    
+            
             errorLabel.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 8),
-            errorLabel.leadingAnchor.constraint(equalTo: inputContainer.leadingAnchor, constant: 16),
-            errorLabel.trailingAnchor.constraint(equalTo: inputContainer.trailingAnchor, constant: -16),
-         
-            categoryButton.topAnchor.constraint(equalTo: inputContainer.bottomAnchor, constant: 24),
+            errorLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            errorLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            
+            categoryButton.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 24),
             categoryButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             categoryButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             categoryButton.heightAnchor.constraint(equalToConstant: 75),
-     
+            
             scheduleButton.topAnchor.constraint(equalTo: categoryButton.bottomAnchor),
             scheduleButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             scheduleButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             scheduleButton.heightAnchor.constraint(equalToConstant: 75),
-
+            
             buttonsStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             buttonsStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             buttonsStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             buttonsStack.heightAnchor.constraint(equalToConstant: 60)
         ])
-   
+        
         NSLayoutConstraint.activate([
             cancelButton.heightAnchor.constraint(equalToConstant: 60),
             createButton.heightAnchor.constraint(equalToConstant: 60)
