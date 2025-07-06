@@ -8,25 +8,25 @@
 import UIKit
 
 final class ColorCollectionView: UICollectionView {
-    
-    // MARK: - Properties
     var selectedColor: UIColor? {
         didSet {
             reloadData()
-            selectedColor.map { didSelectColor?($0) }
+            if let selectedColor {
+                didSelectColor?(selectedColor)
+            }
         }
     }
     var didSelectColor: ((UIColor) -> Void)?
     
     private let identifier = ColorCell.identifier
+    
     private enum Layout {
         static let itemsPerRow: CGFloat = 6
-        static let itemSize = CGSize(width: 40, height: 40)
+        static let itemSize = CGSize(width: 52, height: 52)
         static let sectionInsets = UIEdgeInsets(top: 24, left: 0, bottom: 24, right: 0)
         static let lineSpacing: CGFloat = 5
     }
     
-    // MARK: - Initialization
     init() {
         let layout = UICollectionViewFlowLayout()
         super.init(frame: .zero, collectionViewLayout: layout)
@@ -52,7 +52,6 @@ final class ColorCollectionView: UICollectionView {
     }
 }
 
-// MARK: - DataSource & Delegate
 extension ColorCollectionView: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         Colors.trackerColors.count
@@ -75,7 +74,6 @@ extension ColorCollectionView: UICollectionViewDataSource {
 extension ColorCollectionView: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         selectedColor = Colors.trackerColors[indexPath.row]
-        collectionView.reloadData()
     }
 }
 

@@ -241,7 +241,7 @@ final class HabitCreationViewController: UIViewController {
             errorLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             errorLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             
-            categoryButton.topAnchor.constraint(equalTo: errorLabel.bottomAnchor, constant: 24),
+            categoryButton.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 24),
             categoryButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             categoryButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             categoryButton.heightAnchor.constraint(equalToConstant: 75),
@@ -368,12 +368,15 @@ final class HabitCreationViewController: UIViewController {
         let isErrorVisible = text.count > maxHabitNameLength
         errorLabel.isHidden = !isErrorVisible
         
-        view.constraints.first {
+        if let categoryTopConstraint = contentView.constraints.first(where: {
             $0.firstItem as? UIButton == categoryButton && $0.firstAttribute == .top
-        }?.constant = isErrorVisible ? 56 : 24
-        
-        UIView.animate(withDuration: 0.3) {
-            self.view.layoutIfNeeded()
+        }) {
+            
+            categoryTopConstraint.constant = isErrorVisible ? 56 : 24
+            
+            UIView.animate(withDuration: 0.3) {
+                self.view.layoutIfNeeded()
+            }
         }
         
         if isErrorVisible {

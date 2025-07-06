@@ -13,7 +13,7 @@ final class ColorCell: UICollectionViewCell {
     
     private enum Constants {
         static let outerSize: CGFloat = 40
-        static let innerSize: CGFloat = 46
+        static let innerSize: CGFloat = 52
         static let cornerRadius: CGFloat = 8
         static let borderWidth: CGFloat = 3
         static let borderAlpha: CGFloat = 0.3
@@ -57,8 +57,9 @@ final class ColorCell: UICollectionViewCell {
     }
     
     private func setupViews() {
-        contentView.addSubview(colorView)
-        contentView.addSubview(selectionBorderView)
+        [colorView, selectionBorderView].forEach {
+            contentView.addSubview($0)
+        }
     }
     
     private func setupConstraints() {

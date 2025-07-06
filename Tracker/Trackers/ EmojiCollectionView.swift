@@ -9,8 +9,7 @@ import UIKit
 final class EmojiCollectionView: UICollectionView {
     
     // MARK: - Properties
-    var selectedEmoji: String?
-    var didSelectEmoji: ((String) -> Void)?
+    private(set) var selectedEmoji: String?
     var onEmojiSelected: ((String) -> Void)?
     
     private let emojis = [
@@ -56,21 +55,21 @@ final class EmojiCollectionView: UICollectionView {
 // MARK: - UICollectionViewDataSource
 extension EmojiCollectionView: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView,
-                        numberOfItemsInSection section: Int) -> Int {
+                       numberOfItemsInSection section: Int) -> Int {
         emojis.count
     }
     
     func collectionView(_ collectionView: UICollectionView,
-                        cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+                       cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: EmojiCell.identifier,
             for: indexPath
         ) as? EmojiCell else {
+            assertionFailure("Unable to dequeue EmojiCell")
             return UICollectionViewCell()
         }
         
         let emoji = emojis[indexPath.row]
-        _ = emoji == selectedEmoji
         cell.configure(with: emoji, isSelected: emoji == selectedEmoji)
         return cell
     }
@@ -78,12 +77,11 @@ extension EmojiCollectionView: UICollectionViewDataSource {
 
 // MARK: - UICollectionViewDelegate
 extension EmojiCollectionView: UICollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let selected = emojis[indexPath.row]
-        
-        selectedEmoji = selected
-        onEmojiSelected?(selected)
-        
+    func collectionView(_ collectionView: UICollectionView,
+                       didSelectItemAt indexPath: IndexPath) {
+        let selectedEmoji = emojis[indexPath.row]
+        self.selectedEmoji = selectedEmoji
+        onEmojiSelected?(selectedEmoji)
         collectionView.reloadData()
     }
 }
@@ -91,26 +89,26 @@ extension EmojiCollectionView: UICollectionViewDelegate {
 // MARK: - UICollectionViewDelegateFlowLayout
 extension EmojiCollectionView: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        sizeForItemAt indexPath: IndexPath) -> CGSize {
+                       layout collectionViewLayout: UICollectionViewLayout,
+                       sizeForItemAt indexPath: IndexPath) -> CGSize {
         Layout.itemSize
     }
     
     func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        insetForSectionAt section: Int) -> UIEdgeInsets {
+                       layout collectionViewLayout: UICollectionViewLayout,
+                       insetForSectionAt section: Int) -> UIEdgeInsets {
         Layout.sectionInsets
     }
     
     func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+                       layout collectionViewLayout: UICollectionViewLayout,
+                       minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
         interitemSpacing
     }
     
     func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+                       layout collectionViewLayout: UICollectionViewLayout,
+                       minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         Layout.spacing
     }
 }

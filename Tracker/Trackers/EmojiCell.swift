@@ -8,7 +8,6 @@
 import UIKit
 
 final class EmojiCell: UICollectionViewCell {
-    
     static let identifier = "EmojiCell"
     
     private enum Constants {
@@ -35,12 +34,11 @@ final class EmojiCell: UICollectionViewCell {
     }
     
     func configure(with emoji: String, isSelected: Bool) {
-           emojiLabel.text = emoji
-    
-           contentView.backgroundColor = isSelected ? UIColor.lightGray : .clear
-           contentView.layer.cornerRadius = isSelected ? 16 : 0
-           contentView.layer.masksToBounds = isSelected
-       }
+        emojiLabel.text = emoji
+        contentView.backgroundColor = isSelected ? Colors.lightGray : .clear
+        contentView.layer.cornerRadius = isSelected ? Constants.cornerRadius : 0
+        contentView.layer.masksToBounds = isSelected
+    }
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
