@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		6E3F0BF82E1C169200634C2E /* TrackerDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 6E3F0BF62E1C169200634C2E /* TrackerDataModel.xcdatamodeld */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
-		6EF6411E2DFDEF1A00217041 /* Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6E3F0BF72E1C169200634C2E /* TrackerDataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TrackerDataModel.xcdatamodel; sourceTree = "<group>"; };
+		6EF6411E2DFDEF1A00217041 /* Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = Tracker.app; path = "/Users/natasha/projects/Tracker/build/Debug-iphoneos/Tracker.app"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -45,17 +50,9 @@
 		6EF641152DFDEF1A00217041 = {
 			isa = PBXGroup;
 			children = (
+				6E3F0BF62E1C169200634C2E /* TrackerDataModel.xcdatamodeld */,
 				6EF641202DFDEF1A00217041 /* Tracker */,
-				6EF6411F2DFDEF1A00217041 /* Products */,
 			);
-			sourceTree = "<group>";
-		};
-		6EF6411F2DFDEF1A00217041 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				6EF6411E2DFDEF1A00217041 /* Tracker.app */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -108,7 +105,7 @@
 			mainGroup = 6EF641152DFDEF1A00217041;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 6EF6411F2DFDEF1A00217041 /* Products */;
+			productRefGroup = 6EF641152DFDEF1A00217041;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -132,6 +129,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6E3F0BF82E1C169200634C2E /* TrackerDataModel.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -345,6 +343,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		6E3F0BF62E1C169200634C2E /* TrackerDataModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				6E3F0BF72E1C169200634C2E /* TrackerDataModel.xcdatamodel */,
+			);
+			currentVersion = 6E3F0BF72E1C169200634C2E /* TrackerDataModel.xcdatamodel */;
+			path = TrackerDataModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 6EF641162DFDEF1A00217041 /* Project object */;
 }

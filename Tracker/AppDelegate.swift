@@ -6,13 +6,44 @@
 //
 
 import UIKit
+import CoreData
 
 @main
 final class AppDelegate: UIResponder, UIApplicationDelegate {
     
+    // MARK: - Core Data Stack
+    lazy var persistentContainer: NSPersistentContainer = {
+        let container = NSPersistentContainer(name: "TrackerDataModel")
+        
+        container.loadPersistentStores { _, error in
+            if let error = error {
+                print("Core Data load error: \(error.localizedDescription)")
+            }
+        }
+        
+        container.viewContext.automaticallyMergesChangesFromParent = true
+        return container
+    }()
+    
+    // MARK: - Core Data Saving
+        func saveContext() {
+            let context = persistentContainer.viewContext
+            
+            if context.hasChanges {
+                do {
+                    try context.save()
+                } catch {
+                    print("Core Data save error: \(error.localizedDescription)")
+                    context.rollback()
+                }
+            }
+        }
+    
+    // MARK: - App Lifecycle
     func application(_ application: UIApplication,
                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-    
+        _ = persistentContainer
+        
         if #available(iOS 15.0, *) {
             let tabBarAppearance = UITabBarAppearance()
             tabBarAppearance.configureWithOpaqueBackground()
@@ -36,3 +67,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 }
 
+// MARK: - Простой доступ к контексту
+extension AppDelegate {
+    static var viewContext: NSManagedObjectContext {
+        return (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    }
+}
