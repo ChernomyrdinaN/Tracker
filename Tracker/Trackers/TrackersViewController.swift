@@ -38,7 +38,7 @@ final class TrackersViewController: UIViewController {
             return TrackerCategory(id: category.id, title: category.title, trackers: filteredTrackers)
         }.filter { !$0.trackers.isEmpty }
     }
-  
+    
     // MARK: - UI Elements
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -151,7 +151,7 @@ final class TrackersViewController: UIViewController {
             view.addSubview($0)
         }
     }
-        
+    
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 1),
@@ -188,10 +188,9 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Helper Methods
     private func isTrackerVisible(_ tracker: Tracker, for date: Date) -> Bool {
-        guard tracker.isRegular else { return true }
         let calendar = Calendar.current
         let weekday = calendar.component(.weekday, from: date)
-        return tracker.schedule?.contains { $0.calendarIndex == weekday } ?? false
+        return tracker.schedule.contains { $0.calendarIndex == weekday }
     }
     
     private func isTrackerCompletedToday(_ trackerId: UUID) -> Bool {

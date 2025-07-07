@@ -341,10 +341,14 @@ final class HabitCreationViewController: UIViewController {
     }
     
     private func updateCreateButtonState() {
-        let text = nameTextField.text ?? ""
-        let isValid = !text.isEmpty && text.count <= maxHabitNameLength && selectedEmoji != nil && selectedColor != nil
-        createButton.isEnabled = isValid
-        createButton.backgroundColor = isValid ? Colors.blue : Colors.gray
+        let isFormValid = !(nameTextField.text?.isEmpty ?? true)
+        && (nameTextField.text?.count ?? 0) <= maxHabitNameLength
+        && !selectedSchedule.isEmpty
+        && selectedEmoji != nil
+        && selectedColor != nil
+        
+        createButton.isEnabled = isFormValid
+        createButton.backgroundColor = isFormValid ? Colors.blue : Colors.gray
     }
     
     private func updateScheduleButtonTitle() {
@@ -363,21 +367,15 @@ final class HabitCreationViewController: UIViewController {
     
     // MARK: - Actions
     @objc private func textFieldDidChange(_ textField: UITextField) {
-        guard let text = textField.text else { return }
-        
+        let text = textField.text ?? ""
         let isErrorVisible = text.count > maxHabitNameLength
-        errorLabel.isHidden = !isErrorVisible
         
-        if let categoryTopConstraint = contentView.constraints.first(where: {
-            $0.firstItem as? UIButton == categoryButton && $0.firstAttribute == .top
-        }) {
-            
-            categoryTopConstraint.constant = isErrorVisible ? 56 : 24
-            
-            UIView.animate(withDuration: 0.3) {
-                self.view.layoutIfNeeded()
-            }
-        }
+        errorLabel.isHidden = !isErrorVisible
+        contentView.constraints
+            .first { $0.firstItem as? UIButton == categoryButton && $0.firstAttribute == .top }?
+            .constant = isErrorVisible ? 56 : 24
+        
+        UIView.animate(withDuration: 0.3) { self.view.layoutIfNeeded() }
         
         if isErrorVisible {
             textField.text = String(text.prefix(maxHabitNameLength))
@@ -386,20 +384,13 @@ final class HabitCreationViewController: UIViewController {
     }
     
     @objc private func createButtonTapped() {
-        guard let name = nameTextField.text,
-              let selectedEmoji = selectedEmoji,
-              let selectedColor = selectedColor else { return }
-        
-        let colorName = Colors.colorName(for: selectedColor) ?? "Color selection 1"
-        
         let newTracker = Tracker(
             id: UUID(),
-            name: name,
-            color: colorName,
-            emoji: selectedEmoji,
+            name: nameTextField.text!,
+            color: Colors.colorName(for: selectedColor!) ?? "Color selection 1",
+            emoji: selectedEmoji!,
             schedule: Array(selectedSchedule),
-            isRegular: !selectedSchedule.isEmpty,
-            colorAssetName: colorName
+            colorAssetName: Colors.colorName(for: selectedColor!) ?? "Color selection 1"
         )
         
         onTrackerCreated?(newTracker)
@@ -422,6 +413,7 @@ final class HabitCreationViewController: UIViewController {
         scheduleVC.onScheduleSelected = { [weak self] days in
             self?.selectedSchedule = days
             self?.updateScheduleButtonTitle()
+            self?.updateCreateButtonState()
         }
         let navVC = UINavigationController(rootViewController: scheduleVC)
         present(navVC, animated: true)
