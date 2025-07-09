@@ -17,7 +17,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         
         container.loadPersistentStores { _, error in
             if let error = error {
-                print("Core Data load error: \(error.localizedDescription)")
+                print("Ошибка загрузки: \(error.localizedDescription)")
             }
         }
         
@@ -33,7 +33,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                 do {
                     try context.save()
                 } catch {
-                    print("Core Data save error: \(error.localizedDescription)")
+                    print("Ошибка сохранения: \(error.localizedDescription)")
                     context.rollback()
                 }
             }
