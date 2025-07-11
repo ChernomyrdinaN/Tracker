@@ -8,88 +8,64 @@
 import CoreData
 import UIKit
 
-final class TrackerStore: TrackerStoreProtocol  { // Класс-прослойка между Core Data и приложением
-    // MARK: - Properties
-    private let context: NSManagedObjectContext // Получаем контекст из AppDelegate через инициализатор
+final class TrackerStore {
+    private let context: NSManagedObjectContext
     
-    init(context: NSManagedObjectContext) {
+    init(context: NSManagedObjectContext = AppDelegate.viewContext) {
         self.context = context
     }
     
-    // MARK: - Public Methods
-    func addTracker(_ tracker: Tracker) { // Добавляем трекер в Core Data
+    func addTracker(_ tracker: Tracker) {
         let trackerEntity = TrackerCoreData(context: context)
-        trackerEntity.id = tracker.id // Заполняем свойства
+        trackerEntity.id = tracker.id
         trackerEntity.name = tracker.name
-        trackerEntity.color = tracker.color
         trackerEntity.emoji = tracker.emoji
-        trackerEntity.colorAssetName = tracker.colorAssetName
+        trackerEntity.color = UIColor(named: tracker.color)
+        trackerEntity.colorAssetName = tracker.color
+        trackerEntity.schedule = tracker.schedule as NSObject
         
-        let scheduleData = try? NSKeyedArchiver.archivedData( // Преобразуем расписание в Data в бинарные данные
-            withRootObject: tracker.schedule.map { $0.rawValue },
-            requiringSecureCoding: false
-        )
-        trackerEntity.schedule = scheduleData
+        let defaultCategory = getDefaultCategory()
+        trackerEntity.category = defaultCategory
         
-        do {
-            try context.save() // Сохраняем контекст, изменения
-            print("Трекер успешно сохранен: \(trackerEntity)")
-        } catch {
-            print("Ошибка сохранения трекера: \(error)")
-        }
+        saveContext()
     }
     
-    func fetchTrackers() -> [Tracker] { // Получаем все трекеры из Core Data
-        let request = TrackerCoreData.fetchRequest()
+    private func getDefaultCategory() -> TrackerCategoryCoreData {
+        let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "title == %@", "Образование")
         
-        do {
-            let coreDataTrackers = try context.fetch(request)
-            return coreDataTrackers.compactMap { createTracker(from: $0) }
-        } catch {
-            print("Ошибка загрузки трекера: \(error)")
-            return []
+        if let existing = try? context.fetch(request).first {
+            return existing
         }
+        
+        let newCategory = TrackerCategoryCoreData(context: context)
+        newCategory.id = UUID()
+        newCategory.title = "Образование"
+        return newCategory
     }
     
-    func deleteTracker(id: UUID) { // Удаляем запись по ID трекера и дате
-        let request = TrackerCoreData.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
-        
-        do {
-            if let tracker = try context.fetch(request).first {
-                context.delete(tracker)
-                try context.save()
-                print("Трекер успешно удалён")
-            }
-        } catch {
-            print("Ошибка удаления трекера: \(error.localizedDescription)")
-        }
-    }
-    
-    // MARK: - Private Methods
-    private func createTracker(from coreData: TrackerCoreData) -> Tracker? { // Преобразуем сущность Core Data в доменную модель Tracker
+    func createTracker(from coreData: TrackerCoreData) -> Tracker? {
         guard let id = coreData.id,
               let name = coreData.name,
-              let color = coreData.color,
-              let emoji = coreData.emoji else {
+              let emoji = coreData.emoji,
+              let color = coreData.color as? UIColor,
+              let schedule = coreData.schedule as? [WeekDay] else {
             return nil
         }
-        
-        let schedule: [WeekDay] = {
-            guard let data = coreData.schedule, // Декодируем данные расписания
-                  let strings = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSArray.self, from: data) as? [String] else {
-                return []
-            }
-            return strings.compactMap { WeekDay(rawValue: $0) }
-        }()
         
         return Tracker(
             id: id,
             name: name,
-            color: color,
+            color: color.accessibilityName,
             emoji: emoji,
             schedule: schedule,
             colorAssetName: coreData.colorAssetName ?? ""
         )
+    }
+    
+    private func saveContext() {
+        if context.hasChanges {
+            try? context.save()
+        }
     }
 }

@@ -8,8 +8,10 @@
 import UIKit
 
 final class TrackersViewController: UIViewController {
-    
     // MARK: - Properties
+    private let trackerStore = TrackerStore(context: AppDelegate.viewContext)
+    private let categoryStore = TrackerCategoryStore(context: AppDelegate.viewContext)
+    private let recordStore = TrackerRecordStore(context: AppDelegate.viewContext)
     
     private let keyboardHandler = KeyboardHandler()
     
@@ -33,10 +35,10 @@ final class TrackersViewController: UIViewController {
     private var completedTrackers: [TrackerRecord] = []
     
     private var filteredCategories: [TrackerCategory] {
-        categories.map { category in
-            let filteredTrackers = category.trackers.filter { isTrackerVisible($0, for: currentDate) }
-            return TrackerCategory(id: category.id, title: category.title, trackers: filteredTrackers)
-        }.filter { !$0.trackers.isEmpty }
+        categories.compactMap { category in
+            let filtered = category.trackers.filter { isTrackerVisible($0, for: currentDate) }
+            return filtered.isEmpty ? nil : TrackerCategory(id: category.id, title: category.title, trackers: filtered)
+        }
     }
     
     // MARK: - UI Elements
@@ -205,32 +207,26 @@ final class TrackersViewController: UIViewController {
         habitVC.modalPresentationStyle = .formSheet
         
         habitVC.onTrackerCreated = { [weak self] newTracker in
-            guard let self else { return }
+            guard let self = self else { return }
             
-            if let firstCategoryIndex = self.categories.firstIndex(where: { $0.title == "Образование" }) {
-                let oldCategory = self.categories[firstCategoryIndex]
-                let newCategory = TrackerCategory(
-                    id: oldCategory.id,
-                    title: oldCategory.title,
-                    trackers: oldCategory.trackers + [newTracker]
-                )
-                self.categories = self.categories.enumerated().map { index, category in
-                    index == firstCategoryIndex ? newCategory : category
-                }
-            } else {
-                let newCategory = TrackerCategory(
-                    id: UUID(),
-                    title: "Образование",
-                    trackers: [newTracker]
-                )
-                self.categories.append(newCategory)
-            }
+            self.trackerStore.addTracker(newTracker)
             
+            self.loadTrackers()
             self.collectionView.reloadData()
             self.isEmptyState = self.filteredCategories.isEmpty
         }
         
         present(UINavigationController(rootViewController: habitVC), animated: true)
+    }
+    
+    private func loadTrackers() {
+        categories = categoryStore.fetchCategories()
+        if categories.isEmpty {
+            let defaultCategory = TrackerCategory(id: UUID(), title: "Образование", trackers: [])
+            categoryStore.addCategory(defaultCategory)
+            categories = [defaultCategory]
+        }
+        completedTrackers = recordStore.fetchRecords()
     }
     
     @objc private func datePickerValueChanged(_ sender: UIDatePicker) {

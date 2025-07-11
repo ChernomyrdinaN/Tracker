@@ -16,7 +16,7 @@ struct Tracker {
     let colorAssetName: String
 }
 
-enum WeekDay: String, CaseIterable {
+enum WeekDay: String, Codable, CaseIterable {
     case monday = "Понедельник"
     case tuesday = "Вторник"
     case wednesday = "Среда"

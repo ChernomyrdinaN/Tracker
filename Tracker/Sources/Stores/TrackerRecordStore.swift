@@ -8,41 +8,30 @@
 import CoreData
 import UIKit
 
-final class TrackerRecordStore: TrackerRecordStoreProtocol {
-    // MARK: - Properties
+final class TrackerRecordStore {
     private let context: NSManagedObjectContext
     
-    init(context: NSManagedObjectContext) {
+    init(context: NSManagedObjectContext = AppDelegate.viewContext) {
         self.context = context
-    }
-    
-    // MARK: - Public Methods
-    func addRecord(_ record: TrackerRecord) {
-        let recordEntity = TrackerRecordCoreData(context: context)
-        recordEntity.trackerId = record.trackerId
-        recordEntity.date = record.date
-        
-        do {
-            try context.save()
-            print("Запись успешно сохранена: \(recordEntity)")
-        } catch {
-            print("Ошибка сохранения записи: \(error)")
-        }
     }
     
     func fetchRecords() -> [TrackerRecord] {
         let request = TrackerRecordCoreData.fetchRequest()
         
-        do {
-            let coreDataRecords = try context.fetch(request)
-            return coreDataRecords.compactMap { createRecord(from: $0) }
-        } catch {
-            print("Ошибка загрузки записей: \(error)")
+        guard let coreDataRecords = try? context.fetch(request) else {
             return []
+        }
+        
+        return coreDataRecords.compactMap { coreData in
+            guard let trackerId = coreData.trackerId,
+                  let date = coreData.date else {
+                return nil
+            }
+            return TrackerRecord(trackerId: trackerId, date: date)
         }
     }
     
-    func deleteRecord(trackerId: UUID, date: Date) {
+    func toggleRecord(for trackerId: UUID, date: Date) {
         let request = TrackerRecordCoreData.fetchRequest()
         request.predicate = NSPredicate(
             format: "trackerId == %@ AND date BETWEEN {%@, %@}",
@@ -51,37 +40,30 @@ final class TrackerRecordStore: TrackerRecordStoreProtocol {
             date.endOfDay as CVarArg
         )
         
-        do {
-            let records = try context.fetch(request)
-            records.forEach { context.delete($0) }
-            try context.save()
-        } catch {
-            print("Ошибка удаления записей: \(error.localizedDescription)")
-        }
-    }
-    
-    // MARK: - Private Methods
-    private func createRecord(from coreData: TrackerRecordCoreData) -> TrackerRecord? {
-        guard let trackerId = coreData.trackerId,
-              let date = coreData.date else {
-            return nil
+        if let existing = try? context.fetch(request).first {
+            context.delete(existing)
+        } else {
+            let newRecord = TrackerRecordCoreData(context: context)
+            newRecord.trackerId = trackerId
+            newRecord.date = date
         }
         
-        return TrackerRecord(
-            trackerId: trackerId,
-            date: date
-        )
+        saveContext()
+    }
+    
+    private func saveContext() {
+        if context.hasChanges {
+            try? context.save()
+        }
     }
 }
 
-// Вспомогательные расширения для работы с датами
 extension Date {
     var startOfDay: Date {
-        return Calendar.current.startOfDay(for: self)
+        Calendar.current.startOfDay(for: self)
     }
     
     var endOfDay: Date {
-        let calendar = Calendar.current
-        return calendar.date(bySettingHour: 23, minute: 59, second: 59, of: startOfDay) ?? startOfDay
+        Calendar.current.date(byAdding: .day, value: 1, to: startOfDay)?.addingTimeInterval(-1) ?? self
     }
 }

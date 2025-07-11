@@ -6,13 +6,8 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		6E3F0BF82E1C169200634C2E /* TrackerDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 6E3F0BF62E1C169200634C2E /* TrackerDataModel.xcdatamodeld */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXFileReference section */
-		6E3F0BF72E1C169200634C2E /* TrackerDataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TrackerDataModel.xcdatamodel; sourceTree = "<group>"; };
-		6E3F0BFB2E1E826700634C2E /* Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = Tracker.app; path = "/Users/natasha/projects/Tracker/build/Debug-iphoneos/Tracker.app"; sourceTree = "<absolute>"; };
+		6E3F0E1B2E21109F00634C2E /* Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = Tracker.app; path = "/Users/natasha/projects/Tracker/build/Debug-iphoneos/Tracker.app"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -50,7 +45,6 @@
 		6EF641152DFDEF1A00217041 = {
 			isa = PBXGroup;
 			children = (
-				6E3F0BF62E1C169200634C2E /* TrackerDataModel.xcdatamodeld */,
 				6EF641202DFDEF1A00217041 /* Tracker */,
 			);
 			sourceTree = "<group>";
@@ -77,7 +71,7 @@
 			packageProductDependencies = (
 			);
 			productName = Tracker;
-			productReference = 6E3F0BFB2E1E826700634C2E /* Tracker.app */;
+			productReference = 6E3F0E1B2E21109F00634C2E /* Tracker.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -129,7 +123,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6E3F0BF82E1C169200634C2E /* TrackerDataModel.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -343,19 +336,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCVersionGroup section */
-		6E3F0BF62E1C169200634C2E /* TrackerDataModel.xcdatamodeld */ = {
-			isa = XCVersionGroup;
-			children = (
-				6E3F0BF72E1C169200634C2E /* TrackerDataModel.xcdatamodel */,
-			);
-			currentVersion = 6E3F0BF72E1C169200634C2E /* TrackerDataModel.xcdatamodel */;
-			path = TrackerDataModel.xcdatamodeld;
-			sourceTree = "<group>";
-			versionGroupType = wrapper.xcdatamodel;
-		};
-/* End XCVersionGroup section */
 	};
 	rootObject = 6EF641162DFDEF1A00217041 /* Project object */;
 }
