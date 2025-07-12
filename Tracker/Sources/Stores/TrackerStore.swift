@@ -8,12 +8,17 @@
 import CoreData
 import UIKit
 
+protocol TrackerStoreDelegate: AnyObject {
+    func didUpdateTrackers()
+}
+
 final class TrackerStore: NSObject {
+    weak var delegate: TrackerStoreDelegate?
     
     // MARK: - Properties
     private let context: NSManagedObjectContext
     private var fetchedResultsController: NSFetchedResultsController<TrackerCoreData>?
-    
+  
     // MARK: - Initialization
     override init() {
         self.context = AppDelegate.viewContext
@@ -24,7 +29,9 @@ final class TrackerStore: NSObject {
     // MARK: - Setup
     private func setupFetchedResultsController() {
         let request = TrackerCoreData.fetchRequest()
-        request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
+        request.sortDescriptors = [
+            NSSortDescriptor(key: "name", ascending: true)
+        ]
         
         fetchedResultsController = NSFetchedResultsController(
             fetchRequest: request,
@@ -32,6 +39,8 @@ final class TrackerStore: NSObject {
             sectionNameKeyPath: nil,
             cacheName: nil
         )
+        
+        fetchedResultsController?.delegate = self
         
         do {
             try fetchedResultsController?.performFetch()
@@ -54,8 +63,8 @@ final class TrackerStore: NSObject {
     }
     
     func fetchTrackers() -> [Tracker] {
-        guard let objects = fetchedResultsController?.fetchedObjects else { return [] }
-        return objects.compactMap { createTracker(from: $0) }
+        guard let trackerObjects = fetchedResultsController?.fetchedObjects else { return [] }
+        return trackerObjects.compactMap { createTracker(from: $0) }
     }
     
     func deleteTracker(_ tracker: Tracker) {
@@ -108,5 +117,12 @@ final class TrackerStore: NSObject {
         if context.hasChanges {
             try? context.save()
         }
+    }
+}
+
+// MARK: - NSFetchedResultsControllerDelegate
+extension TrackerStore: NSFetchedResultsControllerDelegate {
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        delegate?.didUpdateTrackers()
     }
 }

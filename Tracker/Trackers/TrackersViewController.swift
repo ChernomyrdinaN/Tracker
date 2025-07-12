@@ -145,12 +145,18 @@ final class TrackersViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = Colors.white
+        trackerStore.delegate = self
         setupUI()
         setupNavigationBar()
         setupConstraints()
         setupKeyboardHandler()
         loadData()
     }
+    
+    private func reloadData() {
+        let trackers = trackerStore.fetchTrackers()
+    }
+    
     
     // MARK: - Setup Methods
     private func setupUI() {
@@ -196,7 +202,7 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Data Methods
     private func loadData() {
-        categoryStore.setupDefaultCategory() 
+        categoryStore.setupDefaultCategory()
         if let defaultCategory = categoryStore.fetchDefaultCategoryWithTrackers() {
             categories = [defaultCategory]
         } else {
@@ -326,5 +332,12 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
                         layout collectionViewLayout: UICollectionViewLayout,
                         referenceSizeForHeaderInSection section: Int) -> CGSize {
         return CGSize(width: collectionView.bounds.width, height: 32)
+    }
+}
+
+// MARK: - TrackerStoreDelegate
+extension TrackersViewController: TrackerStoreDelegate {
+    func didUpdateTrackers() {
+        loadData()
     }
 }
