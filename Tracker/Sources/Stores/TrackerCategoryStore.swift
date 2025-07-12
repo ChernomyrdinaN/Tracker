@@ -10,7 +10,7 @@ import UIKit
 
 final class TrackerCategoryStore {
     
-    // MARK: - Properties
+    // MARK: - Private Properties
     private let context: NSManagedObjectContext
     
     // MARK: - Initialization
@@ -32,11 +32,9 @@ final class TrackerCategoryStore {
     }
     
     func fetchDefaultCategoryWithTrackers() -> TrackerCategory? {
-        let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
-        request.predicate = NSPredicate(format: "title == %@", "Все")
+        let categoryCoreData = getDefaultCategory()
         
-        guard let categoryCoreData = try? context.fetch(request).first,
-              let id = categoryCoreData.id,
+        guard let id = categoryCoreData.id,
               let title = categoryCoreData.title else {
             return nil
         }

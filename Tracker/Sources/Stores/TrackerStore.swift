@@ -8,14 +8,15 @@
 import CoreData
 import UIKit
 
+// MARK: - Protocol
 protocol TrackerStoreDelegate: AnyObject {
     func didUpdateTrackers()
 }
 
 final class TrackerStore: NSObject {
-    weak var delegate: TrackerStoreDelegate?
     
     // MARK: - Properties
+    weak var delegate: TrackerStoreDelegate?
     private let context: NSManagedObjectContext
     private var fetchedResultsController: NSFetchedResultsController<TrackerCoreData>?
     private let categoryStore = TrackerCategoryStore()
