@@ -19,7 +19,7 @@ final class TrackerStore: NSObject {
     private let context: NSManagedObjectContext
     private var fetchedResultsController: NSFetchedResultsController<TrackerCoreData>?
     private let categoryStore = TrackerCategoryStore()
-  
+    
     // MARK: - Initialization
     override init() {
         self.context = AppDelegate.viewContext
@@ -82,7 +82,7 @@ final class TrackerStore: NSObject {
     private func getDefaultCategory() -> TrackerCategoryCoreData {
         return categoryStore.getDefaultCategory()
     }
-   
+    
     private func createTracker(from coreData: TrackerCoreData) -> Tracker? {
         guard let id = coreData.id,
               let name = coreData.name,
