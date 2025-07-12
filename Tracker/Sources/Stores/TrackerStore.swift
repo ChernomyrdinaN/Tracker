@@ -18,6 +18,7 @@ final class TrackerStore: NSObject {
     // MARK: - Properties
     private let context: NSManagedObjectContext
     private var fetchedResultsController: NSFetchedResultsController<TrackerCoreData>?
+    private let categoryStore = TrackerCategoryStore()
   
     // MARK: - Initialization
     override init() {
@@ -79,21 +80,9 @@ final class TrackerStore: NSObject {
     
     // MARK: - Private Methods
     private func getDefaultCategory() -> TrackerCategoryCoreData {
-        let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
-        request.predicate = NSPredicate(format: "title == %@", "Все")
-        request.fetchLimit = 1
-        
-        if let existingCategory = try? context.fetch(request).first {
-            return existingCategory
-        }
-        
-        let newCategory = TrackerCategoryCoreData(context: context)
-        newCategory.id = UUID()
-        newCategory.title = "Все"
-        saveContext()
-        return newCategory
+        return categoryStore.getDefaultCategory()
     }
-    
+   
     private func createTracker(from coreData: TrackerCoreData) -> Tracker? {
         guard let id = coreData.id,
               let name = coreData.name,

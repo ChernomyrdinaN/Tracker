@@ -8,7 +8,12 @@
 import CoreData
 import UIKit
 
+protocol TrackerRecordStoreDelegate: AnyObject {
+    func didUpdateRecords()
+}
+
 final class TrackerRecordStore: NSObject {
+    weak var delegate: TrackerRecordStoreDelegate?
     
     // MARK: - Properties
     private let context: NSManagedObjectContext
@@ -24,7 +29,9 @@ final class TrackerRecordStore: NSObject {
     // MARK: - Setup
     private func setupFetchedResultsController() {
         let request = TrackerRecordCoreData.fetchRequest()
-        request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+        request.sortDescriptors = [
+            NSSortDescriptor(key: "date", ascending: false)
+        ]
         
         fetchedResultsController = NSFetchedResultsController(
             fetchRequest: request,
@@ -32,6 +39,8 @@ final class TrackerRecordStore: NSObject {
             sectionNameKeyPath: nil,
             cacheName: nil
         )
+        
+        fetchedResultsController?.delegate = self
         
         do {
             try fetchedResultsController?.performFetch()
@@ -41,6 +50,13 @@ final class TrackerRecordStore: NSObject {
     }
     
     // MARK: - Public Methods
+    func addRecord(_ record: TrackerRecord) {
+        let recordEntity = TrackerRecordCoreData(context: context)
+        recordEntity.trackerId = record.trackerId
+        recordEntity.date = record.date
+        saveContext()
+    }
+    
     func fetchRecords() -> [TrackerRecord] {
         guard let objects = fetchedResultsController?.fetchedObjects else { return [] }
         return objects.compactMap { record in
@@ -61,32 +77,31 @@ final class TrackerRecordStore: NSObject {
             startOfDay as CVarArg,
             endOfDay as CVarArg
         )
-        request.fetchLimit = 1
         
         if let existing = try? context.fetch(request).first {
             context.delete(existing)
         } else {
-            let newRecord = TrackerRecordCoreData(context: context)
-            newRecord.trackerId = trackerId
-            newRecord.date = date
+            addRecord(TrackerRecord(trackerId: trackerId, date: date))
         }
         saveContext()
     }
     
-    func deleteAllRecords(for trackerId: UUID) {
-        let request = TrackerRecordCoreData.fetchRequest()
-        request.predicate = NSPredicate(format: "trackerId == %@", trackerId as CVarArg)
-        
-        if let records = try? context.fetch(request) {
-            records.forEach { context.delete($0) }
-            saveContext()
-        }
-    }
-    
     // MARK: - Private Methods
     private func saveContext() {
-        if context.hasChanges {
-            try? context.save()
+        guard context.hasChanges else { return }
+        
+        do {
+            try context.save()
+        } catch {
+            print("Failed to save context: \(error)")
+            context.rollback()
         }
+    }
+}
+
+// MARK: - NSFetchedResultsControllerDelegate
+extension TrackerRecordStore: NSFetchedResultsControllerDelegate {
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        delegate?.didUpdateRecords()
     }
 }

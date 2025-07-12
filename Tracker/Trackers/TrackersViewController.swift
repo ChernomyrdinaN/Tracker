@@ -8,6 +8,7 @@
 import UIKit
 
 final class TrackersViewController: UIViewController {
+    
     // MARK: - Properties
     private let trackerStore = TrackerStore()
     private let categoryStore = TrackerCategoryStore()
@@ -146,17 +147,13 @@ final class TrackersViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = Colors.white
         trackerStore.delegate = self
+        recordStore.delegate = self
         setupUI()
         setupNavigationBar()
         setupConstraints()
         setupKeyboardHandler()
         loadData()
     }
-    
-    private func reloadData() {
-        let trackers = trackerStore.fetchTrackers()
-    }
-    
     
     // MARK: - Setup Methods
     private func setupUI() {
@@ -336,8 +333,13 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
 }
 
 // MARK: - TrackerStoreDelegate
-extension TrackersViewController: TrackerStoreDelegate {
+extension TrackersViewController: TrackerStoreDelegate, TrackerRecordStoreDelegate {
     func didUpdateTrackers() {
         loadData()
+    }
+    
+    func didUpdateRecords() {
+        completedTrackers = recordStore.fetchRecords()
+        collectionView.reloadData()
     }
 }

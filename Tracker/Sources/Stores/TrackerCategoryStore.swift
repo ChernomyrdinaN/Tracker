@@ -69,6 +69,22 @@ final class TrackerCategoryStore {
         )
     }
     
+    func getDefaultCategory() -> TrackerCategoryCoreData {
+        let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "title == %@", "Все")
+        request.fetchLimit = 1
+        
+        if let existingCategory = try? context.fetch(request).first {
+            return existingCategory
+        }
+        
+        let newCategory = TrackerCategoryCoreData(context: context)
+        newCategory.id = UUID()
+        newCategory.title = "Все"
+        saveContext()
+        return newCategory
+    }
+    
     // MARK: - Private Methods
     private func saveContext() {
         if context.hasChanges {
