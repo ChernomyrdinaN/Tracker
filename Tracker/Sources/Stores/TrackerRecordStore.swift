@@ -93,7 +93,7 @@ final class TrackerRecordStore: NSObject {
         do {
             try context.save()
         } catch {
-            print("Failed to save context: \(error)")
+            print("Не удалось сохранить контекст: \(error)")
             context.rollback()
         }
     }

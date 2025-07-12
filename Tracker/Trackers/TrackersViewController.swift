@@ -269,15 +269,8 @@ extension TrackersViewController: UICollectionViewDataSource {
         
         cell.onPlusButtonTapped = { [weak self] trackerId, date, isCompleted in
             guard let self else { return }
-            
-            if isCompleted {
-                self.completedTrackers.append(TrackerRecord(trackerId: trackerId, date: date))
-            } else {
-                self.completedTrackers.removeAll { $0.trackerId == trackerId && Calendar.current.isDate($0.date, inSameDayAs: date) }
-            }
-            collectionView.reloadData()
+            self.recordStore.toggleRecord(for: trackerId, date: date)
         }
-        
         return cell
     }
 }
