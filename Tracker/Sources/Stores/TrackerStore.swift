@@ -8,13 +8,39 @@
 import CoreData
 import UIKit
 
-final class TrackerStore {
-    private let context: NSManagedObjectContext
+final class TrackerStore: NSObject {
     
-    init(context: NSManagedObjectContext = AppDelegate.viewContext) {
-        self.context = context
+    // MARK: - Properties
+    private let context: NSManagedObjectContext
+    private var fetchedResultsController: NSFetchedResultsController<TrackerCoreData>?
+    
+    // MARK: - Initialization
+    override init() {
+        self.context = AppDelegate.viewContext
+        super.init()
+        setupFetchedResultsController()
     }
     
+    // MARK: - Setup
+    private func setupFetchedResultsController() {
+        let request = TrackerCoreData.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
+        
+        fetchedResultsController = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: context,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        
+        do {
+            try fetchedResultsController?.performFetch()
+        } catch {
+            print("Не удалось инициализировать FetchedResultsController: \(error)")
+        }
+    }
+    
+    // MARK: - Public Methods
     func addTracker(_ tracker: Tracker) {
         let trackerEntity = TrackerCoreData(context: context)
         trackerEntity.id = tracker.id
@@ -23,28 +49,43 @@ final class TrackerStore {
         trackerEntity.color = UIColor(named: tracker.color)
         trackerEntity.colorAssetName = tracker.color
         trackerEntity.schedule = tracker.schedule as NSObject
-        
-        let defaultCategory = getDefaultCategory()
-        trackerEntity.category = defaultCategory
-        
+        trackerEntity.category = getDefaultCategory()
         saveContext()
     }
     
+    func fetchTrackers() -> [Tracker] {
+        guard let objects = fetchedResultsController?.fetchedObjects else { return [] }
+        return objects.compactMap { createTracker(from: $0) }
+    }
+    
+    func deleteTracker(_ tracker: Tracker) {
+        let request = TrackerCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
+        
+        if let trackers = try? context.fetch(request) {
+            trackers.forEach { context.delete($0) }
+            saveContext()
+        }
+    }
+    
+    // MARK: - Private Methods
     private func getDefaultCategory() -> TrackerCategoryCoreData {
         let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
-        request.predicate = NSPredicate(format: "title == %@", "Образование")
+        request.predicate = NSPredicate(format: "title == %@", "Все")
+        request.fetchLimit = 1
         
-        if let existing = try? context.fetch(request).first {
-            return existing
+        if let existingCategory = try? context.fetch(request).first {
+            return existingCategory
         }
         
         let newCategory = TrackerCategoryCoreData(context: context)
         newCategory.id = UUID()
-        newCategory.title = "Образование"
+        newCategory.title = "Все"
+        saveContext()
         return newCategory
     }
     
-    func createTracker(from coreData: TrackerCoreData) -> Tracker? {
+    private func createTracker(from coreData: TrackerCoreData) -> Tracker? {
         guard let id = coreData.id,
               let name = coreData.name,
               let emoji = coreData.emoji,

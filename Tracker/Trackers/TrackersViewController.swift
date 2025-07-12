@@ -9,9 +9,9 @@ import UIKit
 
 final class TrackersViewController: UIViewController {
     // MARK: - Properties
-    private let trackerStore = TrackerStore(context: AppDelegate.viewContext)
-    private let categoryStore = TrackerCategoryStore(context: AppDelegate.viewContext)
-    private let recordStore = TrackerRecordStore(context: AppDelegate.viewContext)
+    private let trackerStore = TrackerStore()
+    private let categoryStore = TrackerCategoryStore()
+    private let recordStore = TrackerRecordStore()
     
     private let keyboardHandler = KeyboardHandler()
     
@@ -30,9 +30,18 @@ final class TrackersViewController: UIViewController {
         }
     }
     
-    private var categories: [TrackerCategory] = []
+    private var categories: [TrackerCategory] = [] {
+        didSet {
+            collectionView.reloadData()
+            isEmptyState = filteredCategories.isEmpty
+        }
+    }
     
-    private var completedTrackers: [TrackerRecord] = []
+    private var completedTrackers: [TrackerRecord] = [] {
+        didSet {
+            collectionView.reloadData()
+        }
+    }
     
     private var filteredCategories: [TrackerCategory] {
         categories.compactMap { category in
@@ -134,16 +143,13 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
-        view.backgroundColor = Colors.white
         super.viewDidLoad()
+        view.backgroundColor = Colors.white
         setupUI()
         setupNavigationBar()
         setupConstraints()
         setupKeyboardHandler()
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            self.isEmptyState = self.filteredCategories.isEmpty
-        }
+        loadData()
     }
     
     // MARK: - Setup Methods
@@ -188,6 +194,18 @@ final class TrackersViewController: UIViewController {
         searchField.delegate = keyboardHandler
     }
     
+    // MARK: - Data Methods
+    private func loadData() {
+        categoryStore.setupDefaultCategory() 
+        if let defaultCategory = categoryStore.fetchDefaultCategoryWithTrackers() {
+            categories = [defaultCategory]
+        } else {
+            categories = []
+        }
+        completedTrackers = recordStore.fetchRecords()
+        collectionView.reloadData()
+    }
+    
     // MARK: - Helper Methods
     private func isTrackerVisible(_ tracker: Tracker, for date: Date) -> Bool {
         let calendar = Calendar.current
@@ -207,26 +225,11 @@ final class TrackersViewController: UIViewController {
         habitVC.modalPresentationStyle = .formSheet
         
         habitVC.onTrackerCreated = { [weak self] newTracker in
-            guard let self = self else { return }
-            
-            self.trackerStore.addTracker(newTracker)
-            
-            self.loadTrackers()
-            self.collectionView.reloadData()
-            self.isEmptyState = self.filteredCategories.isEmpty
+            self?.trackerStore.addTracker(newTracker)
+            self?.loadData()
         }
         
         present(UINavigationController(rootViewController: habitVC), animated: true)
-    }
-    
-    private func loadTrackers() {
-        categories = categoryStore.fetchCategories()
-        if categories.isEmpty {
-            let defaultCategory = TrackerCategory(id: UUID(), title: "Образование", trackers: [])
-            categoryStore.addCategory(defaultCategory)
-            categories = [defaultCategory]
-        }
-        completedTrackers = recordStore.fetchRecords()
     }
     
     @objc private func datePickerValueChanged(_ sender: UIDatePicker) {

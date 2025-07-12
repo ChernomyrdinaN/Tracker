@@ -25,7 +25,6 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         return container
     }()
     
-    
     var context: NSManagedObjectContext {
         persistentContainer.viewContext
     }
@@ -66,13 +65,13 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
     
-      func applicationDidEnterBackground(_ application: UIApplication) {
-          saveContext()
-      }
-      
-      func applicationWillTerminate(_ application: UIApplication) {
-          saveContext()
-      }
+    func applicationDidEnterBackground(_ application: UIApplication) {
+        saveContext()
+    }
+    
+    func applicationWillTerminate(_ application: UIApplication) {
+        saveContext()
+    }
     
     func checkCoreDataInitialization() {
         let container = persistentContainer

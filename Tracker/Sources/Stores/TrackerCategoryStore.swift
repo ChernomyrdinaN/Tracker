@@ -9,43 +9,67 @@ import CoreData
 import UIKit
 
 final class TrackerCategoryStore {
+    
+    // MARK: - Properties
     private let context: NSManagedObjectContext
     
+    // MARK: - Initialization
     init(context: NSManagedObjectContext = AppDelegate.viewContext) {
         self.context = context
     }
     
-    func addCategory(_ category: TrackerCategory) {
-        let categoryEntity = TrackerCategoryCoreData(context: context)
-        categoryEntity.id = category.id
-        categoryEntity.title = category.title
-        saveContext()
+    // MARK: - Public Methods
+    func setupDefaultCategory() {
+        let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "title == %@", "Все")
+        
+        if let count = try? context.count(for: request), count == 0 {
+            let defaultCategory = TrackerCategoryCoreData(context: context)
+            defaultCategory.id = UUID()
+            defaultCategory.title = "Все"
+            saveContext()
+        }
     }
     
-    func fetchCategories() -> [TrackerCategory] {
-        let request = TrackerCategoryCoreData.fetchRequest()
+    func fetchDefaultCategoryWithTrackers() -> TrackerCategory? {
+        let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "title == %@", "Все")
         
-        guard let coreDataCategories = try? context.fetch(request) else {
-            return []
+        guard let categoryCoreData = try? context.fetch(request).first,
+              let id = categoryCoreData.id,
+              let title = categoryCoreData.title else {
+            return nil
         }
         
-        return coreDataCategories.compactMap { coreData in
-            guard let id = coreData.id,
-                  let title = coreData.title else {
+        let trackersSet = categoryCoreData.trackers as? Set<TrackerCoreData> ?? []
+        
+        let trackers: [Tracker] = trackersSet.compactMap { coreDataTracker in
+            guard let trackerId = coreDataTracker.id,
+                  let name = coreDataTracker.name,
+                  let emoji = coreDataTracker.emoji,
+                  let color = coreDataTracker.color as? UIColor,
+                  let schedule = coreDataTracker.schedule as? [WeekDay] else {
                 return nil
             }
             
-            let trackers = (coreData.trackers?.allObjects as? [TrackerCoreData])?
-                .compactMap { TrackerStore(context: context).createTracker(from: $0) } ?? []
-            
-            return TrackerCategory(
-                id: id,
-                title: title,
-                trackers: trackers
+            return Tracker(
+                id: trackerId,
+                name: name,
+                color: color.accessibilityName,
+                emoji: emoji,
+                schedule: schedule,
+                colorAssetName: coreDataTracker.colorAssetName ?? ""
             )
         }
+        
+        return TrackerCategory(
+            id: id,
+            title: title,
+            trackers: trackers
+        )
     }
     
+    // MARK: - Private Methods
     private func saveContext() {
         if context.hasChanges {
             try? context.save()
