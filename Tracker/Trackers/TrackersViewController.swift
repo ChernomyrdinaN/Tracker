@@ -86,7 +86,7 @@ final class TrackersViewController: UIViewController {
     
     private lazy var errorImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(resource: .ilError1)
+        imageView.image = UIImage(resource: .error1)
         imageView.contentMode = .scaleAspectFit
         imageView.isHidden = true
         return imageView
