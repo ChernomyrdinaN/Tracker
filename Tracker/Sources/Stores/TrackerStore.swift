@@ -21,34 +21,11 @@ final class TrackerStore: NSObject {
     private var fetchedResultsController: NSFetchedResultsController<TrackerCoreData>?
     private let categoryStore = TrackerCategoryStore()
     
-    // MARK: - Initialization
+    // MARK: - Init
     override init() {
         self.context = AppDelegate.viewContext
         super.init()
         setupFetchedResultsController()
-    }
-    
-    // MARK: - Setup
-    private func setupFetchedResultsController() {
-        let request = TrackerCoreData.fetchRequest()
-        request.sortDescriptors = [
-            NSSortDescriptor(key: "name", ascending: true)
-        ]
-        
-        fetchedResultsController = NSFetchedResultsController(
-            fetchRequest: request,
-            managedObjectContext: context,
-            sectionNameKeyPath: nil,
-            cacheName: nil
-        )
-        
-        fetchedResultsController?.delegate = self
-        
-        do {
-            try fetchedResultsController?.performFetch()
-        } catch {
-            print("Не удалось инициализировать FetchedResultsController: \(error)")
-        }
     }
     
     // MARK: - Public Methods
@@ -80,6 +57,28 @@ final class TrackerStore: NSObject {
     }
     
     // MARK: - Private Methods
+    private func setupFetchedResultsController() {
+        let request = TrackerCoreData.fetchRequest()
+        request.sortDescriptors = [
+            NSSortDescriptor(key: "name", ascending: true)
+        ]
+        
+        fetchedResultsController = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: context,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        
+        fetchedResultsController?.delegate = self
+        
+        do {
+            try fetchedResultsController?.performFetch()
+        } catch {
+            print("Не удалось инициализировать FetchedResultsController: \(error)")
+        }
+    }
+    
     private func getDefaultCategory() -> TrackerCategoryCoreData {
         return categoryStore.getDefaultCategory()
     }

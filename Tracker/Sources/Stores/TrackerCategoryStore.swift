@@ -13,7 +13,7 @@ final class TrackerCategoryStore {
     // MARK: - Private Properties
     private let context: NSManagedObjectContext
     
-    // MARK: - Initialization
+    // MARK: - Init
     init(context: NSManagedObjectContext = AppDelegate.viewContext) {
         self.context = context
     }

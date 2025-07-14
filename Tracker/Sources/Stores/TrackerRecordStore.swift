@@ -20,34 +20,11 @@ final class TrackerRecordStore: NSObject {
     private let context: NSManagedObjectContext
     private var fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData>?
     
-    // MARK: - Initialization
+    // MARK: - Init
     override init() {
         self.context = AppDelegate.viewContext
         super.init()
         setupFetchedResultsController()
-    }
-    
-    // MARK: - Setup
-    private func setupFetchedResultsController() {
-        let request = TrackerRecordCoreData.fetchRequest()
-        request.sortDescriptors = [
-            NSSortDescriptor(key: "date", ascending: false)
-        ]
-        
-        fetchedResultsController = NSFetchedResultsController(
-            fetchRequest: request,
-            managedObjectContext: context,
-            sectionNameKeyPath: nil,
-            cacheName: nil
-        )
-        
-        fetchedResultsController?.delegate = self
-        
-        do {
-            try fetchedResultsController?.performFetch()
-        } catch {
-            print("Не удалось инициализировать FetchedResultsController: \(error)")
-        }
     }
     
     // MARK: - Public Methods
@@ -88,6 +65,28 @@ final class TrackerRecordStore: NSObject {
     }
     
     // MARK: - Private Methods
+    private func setupFetchedResultsController() {
+        let request = TrackerRecordCoreData.fetchRequest()
+        request.sortDescriptors = [
+            NSSortDescriptor(key: "date", ascending: false)
+        ]
+        
+        fetchedResultsController = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: context,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        
+        fetchedResultsController?.delegate = self
+        
+        do {
+            try fetchedResultsController?.performFetch()
+        } catch {
+            print("Не удалось инициализировать FetchedResultsController: \(error)")
+        }
+    }
+    
     private func saveContext() {
         guard context.hasChanges else { return }
         

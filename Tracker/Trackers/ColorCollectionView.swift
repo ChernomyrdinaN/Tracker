@@ -7,6 +7,13 @@
 
 import UIKit
 
+private enum Layout {
+    static let itemsPerRow: CGFloat = 6
+    static let itemSize = CGSize(width: 52, height: 52)
+    static let sectionInsets = UIEdgeInsets(top: 24, left: 0, bottom: 24, right: 0)
+    static let lineSpacing: CGFloat = 5
+}
+
 final class ColorCollectionView: UICollectionView {
     var selectedColor: UIColor? {
         didSet {
@@ -19,13 +26,6 @@ final class ColorCollectionView: UICollectionView {
     var didSelectColor: ((UIColor) -> Void)?
     
     private let identifier = ColorCell.identifier
-    
-    private enum Layout {
-        static let itemsPerRow: CGFloat = 6
-        static let itemSize = CGSize(width: 52, height: 52)
-        static let sectionInsets = UIEdgeInsets(top: 24, left: 0, bottom: 24, right: 0)
-        static let lineSpacing: CGFloat = 5
-    }
     
     init() {
         let layout = UICollectionViewFlowLayout()
