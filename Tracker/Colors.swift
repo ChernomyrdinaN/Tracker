@@ -9,19 +9,35 @@ import UIKit
 
 // MARK: - Colors
 enum Colors {
-    static let background = UIColor(named: "YP Background")
-    static let black = UIColor(named: "YP Black")
-    static let blue = UIColor(named: "YP Blue")
-    static let gray = UIColor(named: "YP Gray")
-    static let lightGray = UIColor(named: "YP Light Gray")
-    static let red = UIColor(named: "YP Red")
-    static let white = UIColor(named: "YP White")
+    static let background = UIColor(resource: .ypBackground)
+    static let black = UIColor(resource: .ypBlack)
+    static let blue = UIColor(resource: .ypBlue)
+    static let gray = UIColor(resource: .ypGray)
+    static let lightGray = UIColor(resource: .ypLightGray)
+    static let red = UIColor(resource: .ypRed)
+    static let white = UIColor(resource: .ypWhite)
     
-    static let searchFieldBackground = UIColor(named: "SearchFieldBackground")
-    static let searchTextColor = UIColor(named: "SearchTextColor")
-    static let datePickerBackground = UIColor(named: "DatePickerBackground")
+    static let searchFieldBackground = UIColor(resource: .searchFieldBackground)
+    static let searchTextColor = UIColor(resource: .searchText)
     
-    static let trackerColors: [UIColor] = {
-        return (1...18).compactMap { UIColor(named: "Color selection \($0)") }
-    }()
+    static let trackerColors: [UIColor] = [
+        UIColor(resource: .colorSelection1),
+        UIColor(resource: .colorSelection2),
+        UIColor(resource: .colorSelection3),
+        UIColor(resource: .colorSelection4),
+        UIColor(resource: .colorSelection5),
+        UIColor(resource: .colorSelection6),
+        UIColor(resource: .colorSelection7),
+        UIColor(resource: .colorSelection8),
+        UIColor(resource: .colorSelection9),
+        UIColor(resource: .colorSelection10),
+        UIColor(resource: .colorSelection11),
+        UIColor(resource: .colorSelection12),
+        UIColor(resource: .colorSelection13),
+        UIColor(resource: .colorSelection14),
+        UIColor(resource: .colorSelection15),
+        UIColor(resource: .colorSelection16),
+        UIColor(resource: .colorSelection17),
+        UIColor(resource: .colorSelection18)
+    ]
 }

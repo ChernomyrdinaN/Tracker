@@ -12,12 +12,11 @@ struct Tracker {
     let name: String
     let color: String
     let emoji: String
-    let schedule: [WeekDay]?
-    let isRegular: Bool
+    let schedule: [WeekDay]
     let colorAssetName: String
 }
 
-enum WeekDay: String, CaseIterable {
+enum WeekDay: String, Codable, CaseIterable {
     case monday = "Понедельник"
     case tuesday = "Вторник"
     case wednesday = "Среда"

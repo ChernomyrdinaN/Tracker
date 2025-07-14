@@ -4,9 +4,19 @@
 //
 //  Created by Наталья Черномырдина on 19.06.2025.
 //
+
 import UIKit
 
 final class HabitCreationViewController: UIViewController {
+    
+    // MARK: - Properties
+    private var selectedEmoji: String?
+    private var selectedColor: UIColor?
+    
+    private let maxHabitNameLength = 38
+    private var selectedSchedule: Set<WeekDay> = []
+    private let keyboardHandler = KeyboardHandler()
+    var onTrackerCreated: ((Tracker) -> Void)?
     
     // MARK: - UI Elements
     private let titleLabel: UILabel = {
@@ -18,33 +28,18 @@ final class HabitCreationViewController: UIViewController {
         return label
     }()
     
-    private let inputContainer: UIView = {
-        let view = UIView()
-        view.backgroundColor = .clear
-        return view
-    }()
-    
     private let nameTextField: UITextField = {
         let field = UITextField()
         field.placeholder = "Введите название трекера"
         field.backgroundColor = Colors.background
         field.font = .systemFont(ofSize: 17, weight: .regular)
-        field.textColor = Colors.black
+        field.tintColor = Colors.black
         field.layer.cornerRadius = 16
         field.layer.masksToBounds = true
         field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 75))
         field.leftViewMode = .always
-        field.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 41, height: 75))
-        field.rightViewMode = .always
+        field.clearButtonMode = .whileEditing
         return field
-    }()
-    
-    private let clearTextFieldButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setImage(UIImage(named: "xmark_circle"), for: .normal)
-        button.tintColor = Colors.gray
-        button.isHidden = true
-        return button
     }()
     
     private let errorLabel: UILabel = {
@@ -82,7 +77,7 @@ final class HabitCreationViewController: UIViewController {
         stack.alignment = .leading
         stack.spacing = 2
         
-        let arrow = UIImageView(image: UIImage(named: "chevron"))
+        let arrow = UIImageView(image: UIImage(resource: .chevron))
         arrow.tintColor = Colors.gray
         
         container.addSubview(stack)
@@ -116,14 +111,13 @@ final class HabitCreationViewController: UIViewController {
     }()
     
     private let cancelButton: UIButton = {
-        let button = UIButton()
+        let button = UIButton(type: .system)
         button.setTitle("Отменить", for: .normal)
-        button.backgroundColor = .clear
-        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
-        button.setTitleColor(Colors.red, for: .normal)
+        button.setTitleColor(.red, for: .normal)
         button.layer.borderWidth = 1
-        button.layer.borderColor = Colors.red?.cgColor
+        button.layer.borderColor = Colors.red.cgColor
         button.layer.cornerRadius = 16
+        button.layer.masksToBounds = true
         return button
     }()
     
@@ -134,8 +128,8 @@ final class HabitCreationViewController: UIViewController {
         button.setTitleColor(Colors.white, for: .normal)
         button.layer.cornerRadius = 16
         button.layer.masksToBounds = true
-        button.setBackgroundColor(Colors.black ?? .black, for: .normal)
-        button.setBackgroundColor(Colors.black ?? .black, for: .highlighted)
+        button.setBackgroundColor(Colors.black, for: .normal)
+        button.setBackgroundColor(Colors.black, for: .highlighted)
         button.isEnabled = false
         return button
     }()
@@ -148,11 +142,40 @@ final class HabitCreationViewController: UIViewController {
         return stack
     }()
     
-    private let maxHabitNameLength = 38
-    private var selectedSchedule: Set<WeekDay> = []
-    private let keyboardHandler = KeyboardHandler()
-    var onTrackerCreated: ((Tracker) -> Void)?
+    private let scrollView: UIScrollView = {
+        let scroll = UIScrollView()
+        scroll.showsVerticalScrollIndicator = true
+        scroll.translatesAutoresizingMaskIntoConstraints = false
+        return scroll
+    }()
     
+    private let contentView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private let emojiLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Emoji"
+        label.font = .systemFont(ofSize: 19, weight: .bold)
+        label.textColor = Colors.black
+        return label
+    }()
+    
+    private let emojiCollectionView = EmojiCollectionView()
+    
+    private let colorLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Цвет"
+        label.font = .systemFont(ofSize: 19, weight: .bold)
+        label.textColor = Colors.black
+        return label
+    }()
+    
+    private let colorCollectionView = ColorCollectionView()
+    
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = Colors.white
@@ -162,17 +185,34 @@ final class HabitCreationViewController: UIViewController {
         
         keyboardHandler.setup(for: self)
         nameTextField.delegate = keyboardHandler
-    }
-    
-    private func setupViews() {
-        [titleLabel, inputContainer, categoryButton, scheduleButton, buttonsStack].forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            view.addSubview($0)
+        
+        emojiCollectionView.onEmojiSelected = { [weak self] emoji in
+            self?.selectedEmoji = emoji
+            self?.updateCreateButtonState()
         }
         
-        [nameTextField, clearTextFieldButton, errorLabel].forEach {
+        colorCollectionView.didSelectColor = { [weak self] color in
+            self?.selectedColor = color
+            self?.updateCreateButtonState()
+        }
+    }
+    
+    // MARK: - Private Methods
+    private func setupViews() {
+        view.addSubview(titleLabel)
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        view.addSubview(scrollView)
+        scrollView.addSubview(contentView)
+        
+        [nameTextField, errorLabel,
+         categoryButton, scheduleButton,
+         emojiLabel, emojiCollectionView,
+         colorLabel, colorCollectionView,
+         buttonsStack].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
-            inputContainer.addSubview($0)
+            contentView.addSubview($0)
+            
         }
     }
     
@@ -181,49 +221,58 @@ final class HabitCreationViewController: UIViewController {
             titleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 27),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            inputContainer.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
-            inputContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            inputContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            inputContainer.heightAnchor.constraint(equalToConstant: 75),
+            scrollView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 14),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
-            nameTextField.topAnchor.constraint(equalTo: inputContainer.topAnchor),
-            nameTextField.leadingAnchor.constraint(equalTo: inputContainer.leadingAnchor),
-            nameTextField.trailingAnchor.constraint(equalTo: inputContainer.trailingAnchor),
+            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            
+            nameTextField.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
+            nameTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            nameTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             nameTextField.heightAnchor.constraint(equalToConstant: 75),
             
-            clearTextFieldButton.centerYAnchor.constraint(equalTo: nameTextField.centerYAnchor),
-            clearTextFieldButton.trailingAnchor.constraint(equalTo: nameTextField.trailingAnchor, constant: -16),
-            clearTextFieldButton.widthAnchor.constraint(equalToConstant: 17),
-            clearTextFieldButton.heightAnchor.constraint(equalToConstant: 17),
-            
             errorLabel.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 8),
-            errorLabel.leadingAnchor.constraint(equalTo: inputContainer.leadingAnchor, constant: 16),
-            errorLabel.trailingAnchor.constraint(equalTo: inputContainer.trailingAnchor, constant: -16),
+            errorLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            errorLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             
-            categoryButton.topAnchor.constraint(equalTo: inputContainer.bottomAnchor, constant: 24),
-            categoryButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            categoryButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            categoryButton.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 24),
+            categoryButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            categoryButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             categoryButton.heightAnchor.constraint(equalToConstant: 75),
             
-            scheduleButton.topAnchor.constraint(equalTo: categoryButton.bottomAnchor),
-            scheduleButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            scheduleButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            scheduleButton.topAnchor.constraint(equalTo: categoryButton.bottomAnchor, constant: 0),
+            scheduleButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            scheduleButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             scheduleButton.heightAnchor.constraint(equalToConstant: 75),
             
-            buttonsStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            buttonsStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            buttonsStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-            buttonsStack.heightAnchor.constraint(equalToConstant: 60)
+            emojiLabel.topAnchor.constraint(equalTo: scheduleButton.bottomAnchor, constant: 50),
+            emojiLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            
+            emojiCollectionView.topAnchor.constraint(equalTo: emojiLabel.bottomAnchor, constant: 16),
+            emojiCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            emojiCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            emojiCollectionView.heightAnchor.constraint(equalToConstant: 204),
+            
+            colorLabel.topAnchor.constraint(equalTo: emojiCollectionView.bottomAnchor, constant: 34),
+            colorLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            
+            colorCollectionView.topAnchor.constraint(equalTo: colorLabel.bottomAnchor, constant: 16),
+            colorCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            colorCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            colorCollectionView.heightAnchor.constraint(equalToConstant: 204),
+            
+            buttonsStack.topAnchor.constraint(equalTo: colorCollectionView.bottomAnchor, constant: 16),
+            buttonsStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            buttonsStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            buttonsStack.heightAnchor.constraint(equalToConstant: 60),
+            buttonsStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16)
         ])
-    }
-    
-    private func setupActions() {
-        nameTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
-        clearTextFieldButton.addTarget(self, action: #selector(clearTextField), for: .touchUpInside)
-        categoryButton.addTarget(self, action: #selector(categoryButtonTapped), for: .touchUpInside)
-        scheduleButton.addTarget(self, action: #selector(scheduleButtonTapped), for: .touchUpInside)
-        cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
-        createButton.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
     }
     
     private func setupButton(_ button: UIButton, title: String, isFirst: Bool) {
@@ -236,7 +285,7 @@ final class HabitCreationViewController: UIViewController {
         titleLabel.textColor = Colors.black
         titleLabel.tag = 100
         
-        let arrow = UIImageView(image: UIImage(named: "chevron"))
+        let arrow = UIImageView(image: UIImage(resource: .chevron))
         arrow.tintColor = Colors.gray
         
         container.addSubview(titleLabel)
@@ -283,22 +332,23 @@ final class HabitCreationViewController: UIViewController {
         }
     }
     
-    private func updateCreateButtonState() {
-        let text = nameTextField.text ?? ""
-        let isValid = !text.isEmpty && text.count <= maxHabitNameLength
-        createButton.isEnabled = isValid
-        createButton.backgroundColor = isValid ? Colors.blue : Colors.gray
+    private func setupActions() {
+        nameTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
+        categoryButton.addTarget(self, action: #selector(categoryButtonTapped), for: .touchUpInside)
+        scheduleButton.addTarget(self, action: #selector(scheduleButtonTapped), for: .touchUpInside)
+        cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
+        createButton.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
     }
     
-    private func resetErrorState() {
-        errorLabel.isHidden = true
-        view.constraints.first {
-            $0.firstItem as? UIButton == categoryButton && $0.firstAttribute == .top
-        }?.constant = 24
+    private func updateCreateButtonState() {
+        let isFormValid = !(nameTextField.text?.isEmpty ?? true)
+        && (nameTextField.text?.count ?? 0) <= maxHabitNameLength
+        && !selectedSchedule.isEmpty
+        && selectedEmoji != nil
+        && selectedColor != nil
         
-        UIView.animate(withDuration: 0.3) {
-            self.view.layoutIfNeeded()
-        }
+        createButton.isEnabled = isFormValid
+        createButton.backgroundColor = isFormValid ? Colors.blue : Colors.gray
     }
     
     private func updateScheduleButtonTitle() {
@@ -315,27 +365,17 @@ final class HabitCreationViewController: UIViewController {
         }
     }
     
-    @objc private func clearTextField() {
-        nameTextField.text = ""
-        clearTextFieldButton.isHidden = true
-        resetErrorState()
-        updateCreateButtonState()
-    }
-    
+    // MARK: - Actions
     @objc private func textFieldDidChange(_ textField: UITextField) {
-        guard let text = textField.text else { return }
-        
+        let text = textField.text ?? ""
         let isErrorVisible = text.count > maxHabitNameLength
+        
         errorLabel.isHidden = !isErrorVisible
-        clearTextFieldButton.isHidden = text.isEmpty
+        contentView.constraints
+            .first { $0.firstItem as? UIButton == categoryButton && $0.firstAttribute == .top }?
+            .constant = isErrorVisible ? 56 : 24
         
-        view.constraints.first {
-            $0.firstItem as? UIButton == categoryButton && $0.firstAttribute == .top
-        }?.constant = isErrorVisible ? 56 : 24
-        
-        UIView.animate(withDuration: 0.3) {
-            self.view.layoutIfNeeded()
-        }
+        UIView.animate(withDuration: 0.3) { self.view.layoutIfNeeded() }
         
         if isErrorVisible {
             textField.text = String(text.prefix(maxHabitNameLength))
@@ -344,16 +384,13 @@ final class HabitCreationViewController: UIViewController {
     }
     
     @objc private func createButtonTapped() {
-        guard let name = nameTextField.text, !name.isEmpty else { return }
-        
         let newTracker = Tracker(
             id: UUID(),
-            name: name,
-            color: "Color selection 12",
-            emoji: "👩🏽‍💻",
+            name: nameTextField.text!,
+            color: Colors.colorName(for: selectedColor!) ?? "Color selection 1",
+            emoji: selectedEmoji!,
             schedule: Array(selectedSchedule),
-            isRegular: !selectedSchedule.isEmpty,
-            colorAssetName: "Color selection 12"
+            colorAssetName: Colors.colorName(for: selectedColor!) ?? "Color selection 1"
         )
         
         onTrackerCreated?(newTracker)
@@ -376,6 +413,7 @@ final class HabitCreationViewController: UIViewController {
         scheduleVC.onScheduleSelected = { [weak self] days in
             self?.selectedSchedule = days
             self?.updateScheduleButtonTitle()
+            self?.updateCreateButtonState()
         }
         let navVC = UINavigationController(rootViewController: scheduleVC)
         present(navVC, animated: true)
@@ -393,5 +431,11 @@ extension UIButton {
             context.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
         }
         setBackgroundImage(image, for: state)
+    }
+}
+
+extension Colors {
+    static func colorName(for color: UIColor) -> String? {
+        trackerColors.firstIndex { $0.isEqual(color) }.map { "Color selection \($0 + 1)" }
     }
 }

@@ -9,6 +9,10 @@ import UIKit
 
 final class ScheduleViewController: UIViewController {
     
+    // MARK: - Properti
+    var selectedDays: Set<WeekDay> = []
+    var onScheduleSelected: ((Set<WeekDay>) -> Void)?
+    
     // MARK: - UI Elements
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -30,7 +34,7 @@ final class ScheduleViewController: UIViewController {
     }()
     
     private lazy var doneButton: UIButton = {
-        let button = UIButton()
+        let button = UIButton(type: .system)
         button.setTitle("Готово", for: .normal)
         button.backgroundColor = Colors.black
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
@@ -41,18 +45,16 @@ final class ScheduleViewController: UIViewController {
     }()
     
     private let daysOfWeek = WeekDay.allCases
-    var selectedDays: Set<WeekDay> = []
-    var onScheduleSelected: ((Set<WeekDay>) -> Void)?
-    
+        
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = Colors.white
-        setupViews()
+        setupUI()
         setupConstraints()
         setupTableView()
     }
     
-    private func setupViews() {
+    private func setupUI() {
         [titleLabel, tableView, doneButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
@@ -72,7 +74,7 @@ final class ScheduleViewController: UIViewController {
             doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-            doneButton.heightAnchor.constraint(equalToConstant: 60)
+            doneButton.heightAnchor.constraint(equalToConstant: 50)
         ])
     }
     
