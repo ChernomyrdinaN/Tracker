@@ -8,7 +8,6 @@
 import UIKit
 
 final class TrackersViewController: UIViewController {
-    
     // MARK: - Properties
     private let trackerStore = TrackerStore()
     private let categoryStore = TrackerCategoryStore()

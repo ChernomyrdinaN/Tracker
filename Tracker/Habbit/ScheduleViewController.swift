@@ -8,7 +8,6 @@
 import UIKit
 
 final class ScheduleViewController: UIViewController {
-    
     // MARK: - Properti
     var selectedDays: Set<WeekDay> = []
     var onScheduleSelected: ((Set<WeekDay>) -> Void)?

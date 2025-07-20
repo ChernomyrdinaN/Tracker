@@ -8,7 +8,6 @@
 import UIKit
 
 final class CategoriesViewModel {
-    
     // MARK: - Properties
     private let categoryStore: TrackerCategoryStore
     private(set) var categories: [TrackerCategory] = []

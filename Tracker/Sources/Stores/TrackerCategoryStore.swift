@@ -9,7 +9,6 @@ import CoreData
 import UIKit
 
 final class TrackerCategoryStore {
-    
     // MARK: - Private Properties
     private let context: NSManagedObjectContext
     

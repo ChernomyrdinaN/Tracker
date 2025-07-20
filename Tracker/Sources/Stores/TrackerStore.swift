@@ -8,12 +8,12 @@
 import CoreData
 import UIKit
 
+// MARK: - Protocol
 protocol TrackerStoreDelegate: AnyObject {
     func didUpdateTrackers()
 }
 
 final class TrackerStore: NSObject {
-    
     // MARK: - Properties
     weak var delegate: TrackerStoreDelegate?
     private let context: NSManagedObjectContext

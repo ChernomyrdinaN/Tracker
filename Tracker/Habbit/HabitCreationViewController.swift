@@ -8,7 +8,6 @@
 import UIKit
 
 final class HabitCreationViewController: UIViewController {
-    
     // MARK: - Properties
     private var selectedCategory: TrackerCategory?
     private var selectedEmoji: String?

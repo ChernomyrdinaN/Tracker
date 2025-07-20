@@ -8,7 +8,6 @@
 import UIKit
 
 final class EditCategoryViewController: UIViewController {
-    
     // MARK: - Properties
     private let keyboardHandler = KeyboardHandler()
     private let currentCategoryName: String

@@ -10,7 +10,6 @@ import CoreData
 
 @main
 final class AppDelegate: UIResponder, UIApplicationDelegate {
-    
     // MARK: - Core Data Stack
     private lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "TrackerDataModel")

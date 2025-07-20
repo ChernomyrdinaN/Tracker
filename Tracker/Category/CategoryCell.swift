@@ -8,7 +8,6 @@
 import UIKit
 
 final class CategoryCell: UITableViewCell {
-    
     // MARK: - UI Elements
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -42,7 +41,9 @@ final class CategoryCell: UITableViewCell {
     // MARK: - Public Methods
     func configure(with title: String, isSelected: Bool) {
         titleLabel.text = title
-        checkmarkImageView.isHidden = !isSelected
+        UIView.animate(withDuration: 0.8) {
+            self.checkmarkImageView.isHidden = !isSelected
+        }
     }
     
     // MARK: - Private Methods
@@ -57,7 +58,7 @@ final class CategoryCell: UITableViewCell {
             titleLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 26),
             titleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -25),
-        
+            
             checkmarkImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             checkmarkImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             

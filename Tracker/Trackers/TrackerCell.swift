@@ -8,7 +8,6 @@
 import UIKit
 
 final class TrackerCell: UICollectionViewCell {
-    
     // MARK: - Static Properties
     static let identifier = "TrackerCell"
     

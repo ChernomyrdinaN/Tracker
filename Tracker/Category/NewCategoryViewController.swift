@@ -8,10 +8,9 @@
 import UIKit
 
 final class NewCategoryViewController: UIViewController {
-    
     // MARK: - Properties
-    private let keyboardHandler = KeyboardHandler()
     var onCategoryCreated: ((String) -> Void)?
+    private let keyboardHandler = KeyboardHandler()
     
     // MARK: - UI Elements
     private let titleLabel: UILabel = {
@@ -48,7 +47,6 @@ final class NewCategoryViewController: UIViewController {
         button.layer.masksToBounds = true
         return button
     }()
-    
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
