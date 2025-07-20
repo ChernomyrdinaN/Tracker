@@ -199,12 +199,7 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Data Methods
     private func loadData() {
-        categoryStore.setupDefaultCategory()
-        if let defaultCategory = categoryStore.fetchDefaultCategoryWithTrackers() {
-            categories = [defaultCategory]
-        } else {
-            categories = []
-        }
+        categories = categoryStore.fetchAllCategories()
         completedTrackers = recordStore.fetchRecords()
         collectionView.reloadData()
     }
@@ -228,8 +223,11 @@ final class TrackersViewController: UIViewController {
         habitVC.modalPresentationStyle = .formSheet
         
         habitVC.onTrackerCreated = { [weak self] newTracker in
-            self?.trackerStore.addTracker(newTracker)
-            self?.loadData()
+            guard let self = self,
+                  let firstCategory = self.categoryStore.fetchAllCategories().first else { return }
+            
+            try? self.trackerStore.addTracker(newTracker, to: firstCategory)
+            self.loadData()
         }
         
         present(UINavigationController(rootViewController: habitVC), animated: true)

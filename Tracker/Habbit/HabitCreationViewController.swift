@@ -10,13 +10,15 @@ import UIKit
 final class HabitCreationViewController: UIViewController {
     
     // MARK: - Properties
+    private var selectedCategory: TrackerCategory?
     private var selectedEmoji: String?
     private var selectedColor: UIColor?
-    
-    private let maxHabitNameLength = 38
     private var selectedSchedule: Set<WeekDay> = []
     private let keyboardHandler = KeyboardHandler()
+    private let maxHabitNameLength = 38
     var onTrackerCreated: ((Tracker) -> Void)?
+    
+    private let trackerStore = TrackerStore()
     
     // MARK: - UI Elements
     private let titleLabel: UILabel = {
@@ -113,7 +115,7 @@ final class HabitCreationViewController: UIViewController {
     private let cancelButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Отменить", for: .normal)
-        button.setTitleColor(.red, for: .normal)
+        button.setTitleColor(Colors.red, for: .normal)
         button.layer.borderWidth = 1
         button.layer.borderColor = Colors.red.cgColor
         button.layer.cornerRadius = 16
@@ -122,14 +124,13 @@ final class HabitCreationViewController: UIViewController {
     }()
     
     private let createButton: UIButton = {
-        let button = UIButton()
+        let button = UIButton(type: .system)
         button.setTitle("Создать", for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.setTitleColor(Colors.white, for: .normal)
+        button.backgroundColor = Colors.gray
         button.layer.cornerRadius = 16
         button.layer.masksToBounds = true
-        button.setBackgroundColor(Colors.black, for: .normal)
-        button.setBackgroundColor(Colors.black, for: .highlighted)
         button.isEnabled = false
         return button
     }()
@@ -270,8 +271,8 @@ final class HabitCreationViewController: UIViewController {
             buttonsStack.topAnchor.constraint(equalTo: colorCollectionView.bottomAnchor, constant: 16),
             buttonsStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             buttonsStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            buttonsStack.heightAnchor.constraint(equalToConstant: 60),
-            buttonsStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16)
+            buttonsStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
+            buttonsStack.heightAnchor.constraint(equalToConstant: 60)
         ])
     }
     
@@ -343,14 +344,14 @@ final class HabitCreationViewController: UIViewController {
     private func updateCreateButtonState() {
         let isFormValid = !(nameTextField.text?.isEmpty ?? true)
         && (nameTextField.text?.count ?? 0) <= maxHabitNameLength
+        && selectedCategory != nil
         && !selectedSchedule.isEmpty
         && selectedEmoji != nil
         && selectedColor != nil
         
         createButton.isEnabled = isFormValid
-        createButton.backgroundColor = isFormValid ? Colors.blue : Colors.gray
+        createButton.backgroundColor = isFormValid ? Colors.black : Colors.gray
     }
-    
     private func updateScheduleButtonTitle() {
         guard let stack = scheduleButton.subviews.first?.subviews.first as? UIStackView,
               let valueLabel = stack.arrangedSubviews.last as? UILabel else { return }
@@ -384,27 +385,47 @@ final class HabitCreationViewController: UIViewController {
     }
     
     @objc private func createButtonTapped() {
+        guard let name = nameTextField.text,
+              let selectedCategory = selectedCategory else { return }
+        
         let newTracker = Tracker(
             id: UUID(),
-            name: nameTextField.text!,
+            name: name,
             color: Colors.colorName(for: selectedColor!) ?? "Color selection 1",
             emoji: selectedEmoji!,
             schedule: Array(selectedSchedule),
             colorAssetName: Colors.colorName(for: selectedColor!) ?? "Color selection 1"
         )
         
-        onTrackerCreated?(newTracker)
-        dismiss(animated: true)
+        do {
+            try trackerStore.addTracker(newTracker, to: selectedCategory)
+            dismiss(animated: true)
+        } catch {
+            print("Ошибка при создании трекера: \(error.localizedDescription)")
+        }
+    }
+    @objc private func categoryButtonTapped() {
+        let categoryVC = CategorySelectionViewController()
+        if let selectedCategory = selectedCategory {
+            categoryVC.viewModel.selectCategory(with: selectedCategory.title)
+        }
+        
+        categoryVC.onCategorySelected = { [weak self] category in
+            self?.selectedCategory = category
+            self?.updateCategoryButton(with: category.title)
+            self?.updateCreateButtonState()
+        }
+        
+        let navVC = UINavigationController(rootViewController: categoryVC)
+        present(navVC, animated: true)
     }
     
-    @objc private func categoryButtonTapped() {
-        let alert = UIAlertController(
-            title: "Выбор категории",
-            message: "Функционал выбора категории будет добавлен после подключения базы данных",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+    private func updateCategoryButton(with title: String) {
+        guard let container = categoryButton.subviews.first,
+              let stack = container.subviews.first as? UIStackView,
+              let titleLabel = stack.arrangedSubviews.first as? UILabel else { return }
+        
+        titleLabel.text = title
     }
     
     @objc private func scheduleButtonTapped() {

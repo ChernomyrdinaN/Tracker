@@ -14,7 +14,7 @@ protocol TrackerRecordStoreDelegate: AnyObject {
 }
 
 final class TrackerRecordStore: NSObject {
-
+    
     // MARK: - Properties
     weak var delegate: TrackerRecordStoreDelegate?
     private let context: NSManagedObjectContext
