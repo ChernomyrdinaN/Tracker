@@ -14,68 +14,20 @@ final class CategorySelectionViewController: UIViewController {
     var onCategorySelected: ((TrackerCategory) -> Void)?
     
     // MARK: - UI Elements
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Категория"
-        label.font = .systemFont(ofSize: 16, weight: .medium)
-        label.textColor = Colors.black
-        label.textAlignment = .center
-        return label
-    }()
-    
-    private let errorImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.image = UIImage(resource: .error1)
-        imageView.contentMode = .scaleAspectFit
-        imageView.isHidden = true
-        return imageView
-    }()
-    
-    private let trackLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Привычки и события\nможно объединить по смыслу"
-        label.font = .systemFont(ofSize: 12, weight: .medium)
-        label.numberOfLines = 2
-        label.textColor = Colors.black
-        label.textAlignment = .center
-        label.isHidden = true
-        return label
-    }()
-    
-    private let addButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Добавить категорию", for: .normal)
-        button.backgroundColor = Colors.black
-        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
-        button.setTitleColor(Colors.white, for: .normal)
-        button.layer.cornerRadius = 16
-        return button
-    }()
-    
-    private let tableView: UITableView = {
-        let table = UITableView()
-        table.register(CategoryCell.self, forCellReuseIdentifier: CategoryCell.reuseIdentifier)
-        table.isScrollEnabled = true
-        table.alwaysBounceVertical = true
-        table.layer.cornerRadius = 16
-        table.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-        table.tableFooterView = UIView()
-        table.separatorColor = Colors.gray
-        table.backgroundColor = Colors.background
-        return table
-    }()
+    private lazy var titleLabel = makeTitleLabel()
+    private lazy var errorImageView = makeErrorImageView()
+    private lazy var trackLabel = makeTrackLabel()
+    private lazy var addButton = makeAddButton()
+    private lazy var tableView = makeTableView()
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = Colors.white
-        setupViews()
-        setupConstraints()
+        setupUI()
         setupActions()
         bindViewModel()
-        
-        tableView.dataSource = self
-        tableView.delegate = self
+        setupTableView()
     }
     
     // MARK: - Private Methods
@@ -95,11 +47,12 @@ final class CategorySelectionViewController: UIViewController {
         }
     }
     
-    private func setupViews() {
+    private func setupUI() {
         [titleLabel, errorImageView, trackLabel, tableView, addButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
+        setupConstraints()
     }
     
     private func setupConstraints() {
@@ -124,6 +77,12 @@ final class CategorySelectionViewController: UIViewController {
             addButton.heightAnchor.constraint(equalToConstant: 60)
         ])
         updateTableViewHeight()
+    }
+    
+    private func setupTableView() {
+        tableView.register(CategoryCell.self, forCellReuseIdentifier: CategoryCell.reuseIdentifier)
+        tableView.dataSource = self
+        tableView.delegate = self
     }
     
     private func setupActions() {
@@ -162,6 +121,57 @@ final class CategorySelectionViewController: UIViewController {
         present(alert, animated: true)
     }
     
+    // MARK: - UI Factory Methods
+    private func makeTitleLabel() -> UILabel {
+        let label = UILabel()
+        label.text = "Категория"
+        label.font = .systemFont(ofSize: 16, weight: .medium)
+        label.textColor = Colors.black
+        label.textAlignment = .center
+        return label
+    }
+    
+    private func makeErrorImageView() -> UIImageView {
+        let imageView = UIImageView()
+        imageView.image = UIImage(resource: .error1)
+        imageView.contentMode = .scaleAspectFit
+        imageView.isHidden = true
+        return imageView
+    }
+    
+    private func makeTrackLabel() -> UILabel {
+        let label = UILabel()
+        label.text = "Привычки и события\nможно объединить по смыслу"
+        label.font = .systemFont(ofSize: 12, weight: .medium)
+        label.numberOfLines = 2
+        label.textColor = Colors.black
+        label.textAlignment = .center
+        label.isHidden = true
+        return label
+    }
+    
+    private func makeAddButton() -> UIButton {
+        let button = UIButton(type: .system)
+        button.setTitle("Добавить категорию", for: .normal)
+        button.backgroundColor = Colors.black
+        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
+        button.setTitleColor(Colors.white, for: .normal)
+        button.layer.cornerRadius = 16
+        return button
+    }
+    
+    private func makeTableView() -> UITableView {
+        let table = UITableView()
+        table.isScrollEnabled = true
+        table.alwaysBounceVertical = true
+        table.layer.cornerRadius = 16
+        table.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        table.tableFooterView = UIView()
+        table.separatorColor = Colors.gray
+        table.backgroundColor = Colors.background
+        return table
+    }
+    
     // MARK: - Actions
     @objc private func addButtonTapped() {
         let newCategoryVC = NewCategoryViewController()
@@ -172,8 +182,8 @@ final class CategorySelectionViewController: UIViewController {
     }
 }
 
-// MARK: - UITableViewDataSource
-extension CategorySelectionViewController: UITableViewDataSource {
+// MARK: - UITableViewDataSource & UITableViewDelegate
+extension CategorySelectionViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         viewModel.categories.count
     }
@@ -185,10 +195,7 @@ extension CategorySelectionViewController: UITableViewDataSource {
         cell.configure(with: category.title, isSelected: isSelected)
         return cell
     }
-}
-
-// MARK: - UITableViewDelegate
-extension CategorySelectionViewController: UITableViewDelegate {
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let category = viewModel.categories[indexPath.row]
         viewModel.selectCategory(category)
