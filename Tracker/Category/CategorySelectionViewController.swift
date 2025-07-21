@@ -116,6 +116,7 @@ final class CategorySelectionViewController: UIViewController {
             tableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 24),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            tableView.bottomAnchor.constraint(lessThanOrEqualTo: addButton.topAnchor, constant: -16),
             
             addButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             addButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
@@ -130,11 +131,10 @@ final class CategorySelectionViewController: UIViewController {
     }
     
     private func updateTableViewHeight() {
-        tableView.layoutIfNeeded()
-        let height = min(
-            CGFloat(viewModel.categories.count) * 75,
-            view.bounds.height - 200
-        )
+        tableView.constraints.filter { $0.firstAttribute == .height }.forEach {
+            tableView.removeConstraint($0)
+        }
+        let height = min(CGFloat(viewModel.categories.count) * 75, view.bounds.height - 200)
         tableView.heightAnchor.constraint(equalToConstant: height).isActive = true
     }
     

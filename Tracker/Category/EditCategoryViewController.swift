@@ -105,9 +105,7 @@ final class EditCategoryViewController: UIViewController {
     private func updateDoneButtonState() {
         let isEnabled = !(nameTextField.text?.isEmpty ?? true)
         doneButton.isEnabled = isEnabled
-        let color = isEnabled ? Colors.black : Colors.gray
-        doneButton.setBackgroundColor(color, for: .normal)
-        doneButton.setBackgroundColor(color, for: .disabled)
+        doneButton.backgroundColor = isEnabled ? Colors.black : Colors.gray
     }
     
     // MARK: - Actions

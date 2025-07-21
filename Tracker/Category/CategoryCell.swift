@@ -41,7 +41,7 @@ final class CategoryCell: UITableViewCell {
     // MARK: - Public Methods
     func configure(with title: String, isSelected: Bool) {
         titleLabel.text = title
-        UIView.animate(withDuration: 0.8) {
+        UIView.animate(withDuration: 0.3) {
             self.checkmarkImageView.isHidden = !isSelected
         }
     }
@@ -56,13 +56,11 @@ final class CategoryCell: UITableViewCell {
         NSLayoutConstraint.activate([
             titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             titleLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 26),
-            titleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -25),
             
             checkmarkImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             checkmarkImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             
-            contentView.heightAnchor.constraint(greaterThanOrEqualToConstant: 75)
+            contentView.heightAnchor.constraint(equalToConstant: 75),
         ])
     }
     
