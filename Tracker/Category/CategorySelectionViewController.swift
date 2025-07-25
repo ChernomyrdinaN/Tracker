@@ -8,7 +8,6 @@
 import UIKit
 
 final class CategorySelectionViewController: UIViewController {
-    
     // MARK: - Properties
     let viewModel = CategoriesViewModel()
     var onCategorySelected: ((TrackerCategory) -> Void)?
