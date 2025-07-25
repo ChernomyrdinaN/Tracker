@@ -11,6 +11,7 @@ final class NewCategoryViewController: UIViewController {
     // MARK: - Properties
     var onCategoryCreated: ((String) -> Void)?
     private let keyboardHandler = KeyboardHandler()
+    private let maxCategoryNameLength = 38
     
     // MARK: - UI Elements
     private let titleLabel: UILabel = {
@@ -37,14 +38,25 @@ final class NewCategoryViewController: UIViewController {
         return field
     }()
     
+    private let errorLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Ограничение 38 символов"
+        label.font = .systemFont(ofSize: 17, weight: .regular)
+        label.textColor = Colors.red
+        label.textAlignment = .center
+        label.isHidden = true
+        return label
+    }()
+    
     private let doneButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Готово", for: .normal)
-        button.backgroundColor = Colors.black
+        button.backgroundColor = Colors.gray
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.setTitleColor(Colors.white, for: .normal)
         button.layer.cornerRadius = 16
         button.layer.masksToBounds = true
+        button.isEnabled = false
         return button
     }()
     
@@ -62,7 +74,7 @@ final class NewCategoryViewController: UIViewController {
     
     // MARK: - Private Methods
     private func setupViews() {
-        [titleLabel, nameTextField, doneButton].forEach {
+        [titleLabel, nameTextField, errorLabel, doneButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
@@ -78,6 +90,10 @@ final class NewCategoryViewController: UIViewController {
             nameTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             nameTextField.heightAnchor.constraint(equalToConstant: 75),
             
+            errorLabel.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 8),
+            errorLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            errorLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            
             doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
@@ -91,13 +107,23 @@ final class NewCategoryViewController: UIViewController {
     }
     
     private func updateDoneButtonState() {
-        let isEnabled = !(nameTextField.text?.isEmpty ?? true)
+        let text = nameTextField.text ?? ""
+        let isEnabled = !text.isEmpty && text.count <= maxCategoryNameLength
         doneButton.isEnabled = isEnabled
         doneButton.backgroundColor = isEnabled ? Colors.black : Colors.gray
     }
     
     // MARK: - Actions
     @objc private func textFieldDidChange(_ textField: UITextField) {
+        let text = textField.text ?? ""
+        let isErrorVisible = text.count > maxCategoryNameLength
+        
+        errorLabel.isHidden = !isErrorVisible
+        
+        if isErrorVisible {
+            textField.text = String(text.prefix(maxCategoryNameLength))
+        }
+        
         updateDoneButtonState()
     }
     
