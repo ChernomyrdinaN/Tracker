@@ -34,7 +34,7 @@ final class OnboardingViewController: UIPageViewController {
     private func setupPageControl() {
         pageControl.numberOfPages = pages.count
         pageControl.currentPage = 0
-        pageControl.currentPageIndicatorTintColor = .black
+        pageControl.currentPageIndicatorTintColor = Colors.black
         pageControl.pageIndicatorTintColor = Colors.gray
         pageControl.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(pageControl)

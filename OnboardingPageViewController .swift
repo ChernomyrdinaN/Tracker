@@ -43,7 +43,7 @@ final class OnboardingPageViewController: UIViewController {
         skipButton.setTitle("Вот это технологии!", for: .normal)
         skipButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         skipButton.setTitleColor(Colors.white, for: .normal)
-        skipButton.backgroundColor = .black
+        skipButton.backgroundColor = Colors.black
         skipButton.layer.cornerRadius = 16
         skipButton.addTarget(self, action: #selector(didTapSkipButton), for: .touchUpInside)
         
@@ -67,7 +67,7 @@ final class OnboardingPageViewController: UIViewController {
             
             titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 4),
             titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -4),
-            titleLabel.bottomAnchor.constraint(equalTo: skipButton.topAnchor, constant: -200)
+            titleLabel.bottomAnchor.constraint(equalTo: skipButton.topAnchor, constant: -190)
         ])
     }
     

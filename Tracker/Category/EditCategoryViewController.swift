@@ -120,7 +120,7 @@ final class EditCategoryViewController: UIViewController {
     
     private func updateDoneButtonState() {
         let text = nameTextField.text ?? ""
-        let isEnabled = !text.isEmpty && text.count <= maxCategoryNameLength // Проверяем длину текста
+        let isEnabled = !text.isEmpty && text.count <= maxCategoryNameLength
         doneButton.isEnabled = isEnabled
         doneButton.backgroundColor = isEnabled ? Colors.black : Colors.gray
     }
