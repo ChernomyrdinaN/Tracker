@@ -8,7 +8,7 @@
 import UIKit
 
 final class ColorCell: UICollectionViewCell {
-    
+    // MARK: - Properties
     static let identifier = "ColorCell"
     
     private enum Constants {
@@ -19,6 +19,7 @@ final class ColorCell: UICollectionViewCell {
         static let borderAlpha: CGFloat = 0.3
     }
     
+    // MARK: - UI Elements
     private let colorView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = Constants.cornerRadius
@@ -36,6 +37,7 @@ final class ColorCell: UICollectionViewCell {
         return view
     }()
     
+    // MARK: - Lifecycle
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
@@ -46,6 +48,7 @@ final class ColorCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Public Methods
     func configure(with color: UIColor, isSelected: Bool) {
         colorView.backgroundColor = color
         selectionBorderView.layer.borderColor = color.withAlphaComponent(Constants.borderAlpha).cgColor
@@ -56,6 +59,7 @@ final class ColorCell: UICollectionViewCell {
         }
     }
     
+    // MARK: - Private Methods
     private func setupViews() {
         [colorView, selectionBorderView].forEach {
             contentView.addSubview($0)

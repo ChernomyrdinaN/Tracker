@@ -8,7 +8,6 @@
 import UIKit
 
 final class StatisticsViewController: UIViewController {
-    
     // MARK: - UI Elements
     private let mainLabel: UILabel = {
         let label = UILabel()

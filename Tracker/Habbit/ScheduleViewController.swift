@@ -8,7 +8,6 @@
 import UIKit
 
 final class ScheduleViewController: UIViewController {
-    
     // MARK: - Properti
     var selectedDays: Set<WeekDay> = []
     var onScheduleSelected: ((Set<WeekDay>) -> Void)?
@@ -40,7 +39,6 @@ final class ScheduleViewController: UIViewController {
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.setTitleColor(Colors.white, for: .normal)
         button.layer.cornerRadius = 16
-        button.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
         return button
     }()
     
@@ -52,6 +50,7 @@ final class ScheduleViewController: UIViewController {
         setupUI()
         setupConstraints()
         setupTableView()
+        setupDoneButton()
     }
     
     private func setupUI() {
@@ -81,6 +80,10 @@ final class ScheduleViewController: UIViewController {
     private func setupTableView() {
         tableView.dataSource = self
         tableView.delegate = self
+    }
+    
+    private func setupDoneButton() {
+        doneButton.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
     }
     
     @objc private func doneButtonTapped() {

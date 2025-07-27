@@ -9,7 +9,6 @@ import CoreData
 import UIKit
 
 final class TrackerCategoryStore {
-    
     // MARK: - Private Properties
     private let context: NSManagedObjectContext
     
@@ -19,71 +18,83 @@ final class TrackerCategoryStore {
     }
     
     // MARK: - Public Methods
-    func setupDefaultCategory() {
+    func fetchAllCategories() -> [TrackerCategory] {
         let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
-        request.predicate = NSPredicate(format: "title == %@", "Все")
+        guard let categories = try? context.fetch(request) else { return [] }
         
-        if let count = try? context.count(for: request), count == 0 {
-            let defaultCategory = TrackerCategoryCoreData(context: context)
-            defaultCategory.id = UUID()
-            defaultCategory.title = "Все"
-            saveContext()
+        return categories.compactMap { category in
+            guard let id = category.id, let title = category.title else { return nil }
+            let trackersSet = category.trackers as? Set<TrackerCoreData> ?? []
+            let trackers = trackersSet.compactMap { createTracker(from: $0) }
+            return TrackerCategory(id: id, title: title, trackers: trackers)
         }
     }
     
-    func fetchDefaultCategoryWithTrackers() -> TrackerCategory? {
-        let categoryCoreData = getDefaultCategory()
-        
-        guard let id = categoryCoreData.id,
-              let title = categoryCoreData.title else {
-            return nil
+    func addCategory(title: String) throws {
+        guard !title.isEmpty else {
+            throw NSError(domain: "Validation", code: 400, userInfo: [NSLocalizedDescriptionKey: "Название категории не может быть пустым"])
         }
         
-        let trackersSet = categoryCoreData.trackers as? Set<TrackerCoreData> ?? []
-        
-        let trackers: [Tracker] = trackersSet.compactMap { coreDataTracker in
-            guard let trackerId = coreDataTracker.id,
-                  let name = coreDataTracker.name,
-                  let emoji = coreDataTracker.emoji,
-                  let color = coreDataTracker.color as? UIColor,
-                  let schedule = coreDataTracker.schedule as? [WeekDay] else {
-                return nil
-            }
-            
-            return Tracker(
-                id: trackerId,
-                name: name,
-                color: color.accessibilityName,
-                emoji: emoji,
-                schedule: schedule,
-                colorAssetName: coreDataTracker.colorAssetName ?? ""
-            )
-        }
-        
-        return TrackerCategory(
-            id: id,
-            title: title,
-            trackers: trackers
-        )
-    }
-    
-    func getDefaultCategory() -> TrackerCategoryCoreData {
-        let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
-        request.predicate = NSPredicate(format: "title == %@", "Все")
-        request.fetchLimit = 1
-        
-        if let existingCategory = try? context.fetch(request).first {
-            return existingCategory
+        guard !categoryExists(title: title) else {
+            throw NSError(domain: "Validation", code: 409, userInfo: [NSLocalizedDescriptionKey: "Категория с таким названием уже существует"])
         }
         
         let newCategory = TrackerCategoryCoreData(context: context)
         newCategory.id = UUID()
-        newCategory.title = "Все"
+        newCategory.title = title
         saveContext()
-        return newCategory
+    }
+    
+    func updateCategory(_ category: TrackerCategory, newTitle: String) throws {
+        let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", category.id as CVarArg)
+        
+        guard let categoryToUpdate = try? context.fetch(request).first else {
+            throw NSError(domain: "Category", code: 404, userInfo: [NSLocalizedDescriptionKey: "Категория не найдена"])
+        }
+        
+        categoryToUpdate.title = newTitle
+        saveContext()
+    }
+    
+    func deleteCategory(_ category: TrackerCategory) throws {
+        let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", category.id as CVarArg)
+        
+        guard let categoryToDelete = try? context.fetch(request).first else {
+            throw NSError(domain: "Category", code: 404, userInfo: [NSLocalizedDescriptionKey: "Категория не найдена"])
+        }
+        
+        context.delete(categoryToDelete)
+        saveContext()
     }
     
     // MARK: - Private Methods
+    private func categoryExists(title: String) -> Bool {
+        let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "title == %@", title)
+        return (try? context.count(for: request)) ?? 0 > 0
+    }
+    
+    private func createTracker(from coreData: TrackerCoreData) -> Tracker? {
+        guard let id = coreData.id,
+              let name = coreData.name,
+              let emoji = coreData.emoji,
+              let color = coreData.color as? UIColor,
+              let schedule = coreData.schedule as? [WeekDay] else {
+            return nil
+        }
+        
+        return Tracker(
+            id: id,
+            name: name,
+            color: color.accessibilityName,
+            emoji: emoji,
+            schedule: schedule,
+            colorAssetName: coreData.colorAssetName ?? ""
+        )
+    }
+    
     private func saveContext() {
         if context.hasChanges {
             try? context.save()

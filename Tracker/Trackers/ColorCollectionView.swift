@@ -7,6 +7,7 @@
 
 import UIKit
 
+// MARK: - Layout Constants
 private enum Layout {
     static let itemsPerRow: CGFloat = 6
     static let itemSize = CGSize(width: 52, height: 52)
@@ -15,6 +16,7 @@ private enum Layout {
 }
 
 final class ColorCollectionView: UICollectionView {
+    // MARK: - Public Properties
     var selectedColor: UIColor? {
         didSet {
             reloadData()
@@ -25,6 +27,7 @@ final class ColorCollectionView: UICollectionView {
     }
     var didSelectColor: ((UIColor) -> Void)?
     
+    // MARK: - Private Properties
     private let identifier = ColorCell.identifier
     
     init() {
@@ -37,6 +40,7 @@ final class ColorCollectionView: UICollectionView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Private Methods
     private func setupCollectionView() {
         register(ColorCell.self, forCellWithReuseIdentifier: identifier)
         dataSource = self
@@ -52,6 +56,7 @@ final class ColorCollectionView: UICollectionView {
     }
 }
 
+// MARK: - UICollectionViewDataSource
 extension ColorCollectionView: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         Colors.trackerColors.count
@@ -71,6 +76,7 @@ extension ColorCollectionView: UICollectionViewDataSource {
     }
 }
 
+// MARK: - UICollectionViewDelegate
 extension ColorCollectionView: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         selectedColor = Colors.trackerColors[indexPath.row]

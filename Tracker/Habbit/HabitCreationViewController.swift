@@ -8,212 +8,58 @@
 import UIKit
 
 final class HabitCreationViewController: UIViewController {
-    
     // MARK: - Properties
+    private var selectedCategory: TrackerCategory?
     private var selectedEmoji: String?
     private var selectedColor: UIColor?
-    
-    private let maxHabitNameLength = 38
     private var selectedSchedule: Set<WeekDay> = []
     private let keyboardHandler = KeyboardHandler()
     var onTrackerCreated: ((Tracker) -> Void)?
     
+    private let trackerStore = TrackerStore()
+    
     // MARK: - UI Elements
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Новая привычка"
-        label.font = .systemFont(ofSize: 16, weight: .medium)
-        label.textColor = Colors.black
-        label.textAlignment = .center
-        return label
-    }()
-    
-    private let nameTextField: UITextField = {
-        let field = UITextField()
-        field.placeholder = "Введите название трекера"
-        field.backgroundColor = Colors.background
-        field.font = .systemFont(ofSize: 17, weight: .regular)
-        field.tintColor = Colors.black
-        field.layer.cornerRadius = 16
-        field.layer.masksToBounds = true
-        field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 75))
-        field.leftViewMode = .always
-        field.clearButtonMode = .whileEditing
-        return field
-    }()
-    
-    private let errorLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Ограничение 38 символов"
-        label.font = .systemFont(ofSize: 17, weight: .regular)
-        label.textColor = Colors.red
-        label.textAlignment = .center
-        label.isHidden = true
-        return label
-    }()
-    
-    private lazy var categoryButton: UIButton = {
-        let button = UIButton()
-        setupButton(button, title: "Категория", isFirst: true)
-        return button
-    }()
-    
-    private lazy var scheduleButton: UIButton = {
-        let button = UIButton()
-        let container = UIView()
-        container.isUserInteractionEnabled = false
-        
-        let scheduleLabel = UILabel()
-        scheduleLabel.text = "Расписание"
-        scheduleLabel.textColor = Colors.black
-        scheduleLabel.font = .systemFont(ofSize: 17)
-        
-        let scheduleValueLabel = UILabel()
-        scheduleValueLabel.textColor = Colors.gray
-        scheduleValueLabel.font = .systemFont(ofSize: 17)
-        
-        let stack = UIStackView(arrangedSubviews: [scheduleLabel, scheduleValueLabel])
-        stack.axis = .vertical
-        stack.alignment = .leading
-        stack.spacing = 2
-        
-        let arrow = UIImageView(image: UIImage(resource: .chevron))
-        arrow.tintColor = Colors.gray
-        
-        container.addSubview(stack)
-        container.addSubview(arrow)
-        
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        arrow.translatesAutoresizingMaskIntoConstraints = false
-        
-        NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            stack.centerYAnchor.constraint(equalTo: container.centerYAnchor),
-            arrow.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            arrow.centerYAnchor.constraint(equalTo: container.centerYAnchor),
-            arrow.leadingAnchor.constraint(equalTo: stack.trailingAnchor, constant: -32)
-        ])
-        
-        button.addSubview(container)
-        container.translatesAutoresizingMaskIntoConstraints = false
-        
-        NSLayoutConstraint.activate([
-            container.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: 16),
-            container.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -16),
-            container.centerYAnchor.constraint(equalTo: button.centerYAnchor),
-            container.heightAnchor.constraint(equalTo: button.heightAnchor)
-        ])
-        
-        button.backgroundColor = Colors.background
-        button.layer.cornerRadius = 16
-        button.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-        return button
-    }()
-    
-    private let cancelButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Отменить", for: .normal)
-        button.setTitleColor(.red, for: .normal)
-        button.layer.borderWidth = 1
-        button.layer.borderColor = Colors.red.cgColor
-        button.layer.cornerRadius = 16
-        button.layer.masksToBounds = true
-        return button
-    }()
-    
-    private let createButton: UIButton = {
-        let button = UIButton()
-        button.setTitle("Создать", for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
-        button.setTitleColor(Colors.white, for: .normal)
-        button.layer.cornerRadius = 16
-        button.layer.masksToBounds = true
-        button.setBackgroundColor(Colors.black, for: .normal)
-        button.setBackgroundColor(Colors.black, for: .highlighted)
-        button.isEnabled = false
-        return button
-    }()
-    
-    private lazy var buttonsStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [cancelButton, createButton])
-        stack.axis = .horizontal
-        stack.distribution = .fillEqually
-        stack.spacing = 8
-        return stack
-    }()
-    
-    private let scrollView: UIScrollView = {
-        let scroll = UIScrollView()
-        scroll.showsVerticalScrollIndicator = true
-        scroll.translatesAutoresizingMaskIntoConstraints = false
-        return scroll
-    }()
-    
-    private let contentView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private let emojiLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Emoji"
-        label.font = .systemFont(ofSize: 19, weight: .bold)
-        label.textColor = Colors.black
-        return label
-    }()
-    
-    private let emojiCollectionView = EmojiCollectionView()
-    
-    private let colorLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Цвет"
-        label.font = .systemFont(ofSize: 19, weight: .bold)
-        label.textColor = Colors.black
-        return label
-    }()
-    
-    private let colorCollectionView = ColorCollectionView()
+    private lazy var titleLabel = makeTitleLabel()
+    private lazy var nameTextField = makeNameTextField()
+    private lazy var errorLabel = makeErrorLabel()
+    private lazy var categoryButton = makeCategoryButton()
+    private lazy var scheduleButton = makeScheduleButton()
+    private lazy var cancelButton = makeCancelButton()
+    private lazy var createButton = makeCreateButton()
+    private lazy var buttonsStack = makeButtonsStack()
+    private lazy var scrollView = makeScrollView()
+    private lazy var contentView = makeContentView()
+    private lazy var emojiLabel = makeEmojiLabel()
+    private lazy var emojiCollectionView = EmojiCollectionView()
+    private lazy var colorLabel = makeColorLabel()
+    private lazy var colorCollectionView = ColorCollectionView()
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = Colors.white
-        setupViews()
-        setupConstraints()
+        setupUI()
         setupActions()
-        
-        keyboardHandler.setup(for: self)
-        nameTextField.delegate = keyboardHandler
-        
-        emojiCollectionView.onEmojiSelected = { [weak self] emoji in
-            self?.selectedEmoji = emoji
-            self?.updateCreateButtonState()
-        }
-        
-        colorCollectionView.didSelectColor = { [weak self] color in
-            self?.selectedColor = color
-            self?.updateCreateButtonState()
-        }
+        setupDelegates()
     }
     
-    // MARK: - Private Methods
-    private func setupViews() {
-        view.addSubview(titleLabel)
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+    // MARK: - Setup Methods
+    private func setupUI() {
+        [titleLabel, scrollView].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview($0)
+        }
         
-        view.addSubview(scrollView)
         scrollView.addSubview(contentView)
         
-        [nameTextField, errorLabel,
-         categoryButton, scheduleButton,
-         emojiLabel, emojiCollectionView,
-         colorLabel, colorCollectionView,
+        [nameTextField, errorLabel, categoryButton, scheduleButton,
+         emojiLabel, emojiCollectionView, colorLabel, colorCollectionView,
          buttonsStack].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             contentView.addSubview($0)
-            
         }
+        
+        setupConstraints()
     }
     
     private func setupConstraints() {
@@ -270,12 +116,81 @@ final class HabitCreationViewController: UIViewController {
             buttonsStack.topAnchor.constraint(equalTo: colorCollectionView.bottomAnchor, constant: 16),
             buttonsStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             buttonsStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            buttonsStack.heightAnchor.constraint(equalToConstant: 60),
-            buttonsStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16)
+            buttonsStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
+            buttonsStack.heightAnchor.constraint(equalToConstant: 60)
         ])
     }
     
-    private func setupButton(_ button: UIButton, title: String, isFirst: Bool) {
+    private func setupDelegates() {
+        keyboardHandler.setup(for: self)
+        nameTextField.delegate = keyboardHandler
+        
+        emojiCollectionView.onEmojiSelected = { [weak self] emoji in
+            self?.selectedEmoji = emoji
+            self?.updateCreateButtonState()
+        }
+        
+        colorCollectionView.didSelectColor = { [weak self] color in
+            self?.selectedColor = color
+            self?.updateCreateButtonState()
+        }
+    }
+    
+    private func setupActions() {
+        nameTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
+        categoryButton.addTarget(self, action: #selector(categoryButtonTapped), for: .touchUpInside)
+        scheduleButton.addTarget(self, action: #selector(scheduleButtonTapped), for: .touchUpInside)
+        cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
+        createButton.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
+    }
+    
+    // MARK: - UI Factory Methods
+    private func makeTitleLabel() -> UILabel {
+        let label = UILabel()
+        label.text = "Новая привычка"
+        label.font = .systemFont(ofSize: 16, weight: .medium)
+        label.textColor = Colors.black
+        label.textAlignment = .center
+        return label
+    }
+    
+    private func makeNameTextField() -> UITextField {
+        let field = UITextField()
+        field.placeholder = "Введите название трекера"
+        field.backgroundColor = Colors.background
+        field.font = .systemFont(ofSize: 17, weight: .regular)
+        field.tintColor = Colors.black
+        field.layer.cornerRadius = 16
+        field.layer.masksToBounds = true
+        field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 75))
+        field.leftViewMode = .always
+        field.clearButtonMode = .whileEditing
+        return field
+    }
+    
+    private func makeErrorLabel() -> UILabel {
+        let label = UILabel()
+        label.text = "Ограничение 38 символов"
+        label.font = .systemFont(ofSize: 17, weight: .regular)
+        label.textColor = Colors.red
+        label.textAlignment = .center
+        label.isHidden = true
+        return label
+    }
+    
+    private func makeCategoryButton() -> UIButton {
+        let button = UIButton()
+        configureButton(button, title: "Категория", isFirst: true)
+        return button
+    }
+    
+    private func makeScheduleButton() -> UIButton {
+        let button = UIButton()
+        configureButton(button, title: "Расписание", isFirst: false)
+        return button
+    }
+    
+    private func configureButton(_ button: UIButton, title: String, isFirst: Bool) {
         let container = UIView()
         container.isUserInteractionEnabled = false
         
@@ -285,21 +200,31 @@ final class HabitCreationViewController: UIViewController {
         titleLabel.textColor = Colors.black
         titleLabel.tag = 100
         
+        let valueLabel = UILabel()
+        valueLabel.font = .systemFont(ofSize: 17, weight: .regular)
+        valueLabel.textColor = Colors.gray
+        valueLabel.tag = 101
+        
+        let stack = UIStackView(arrangedSubviews: [titleLabel, valueLabel])
+        stack.axis = .vertical
+        stack.alignment = .leading
+        stack.spacing = 2
+        
         let arrow = UIImageView(image: UIImage(resource: .chevron))
         arrow.tintColor = Colors.gray
         
-        container.addSubview(titleLabel)
+        container.addSubview(stack)
         container.addSubview(arrow)
         
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        stack.translatesAutoresizingMaskIntoConstraints = false
         arrow.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            titleLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            stack.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            stack.centerYAnchor.constraint(equalTo: container.centerYAnchor),
             arrow.trailingAnchor.constraint(equalTo: container.trailingAnchor),
             arrow.centerYAnchor.constraint(equalTo: container.centerYAnchor),
-            arrow.leadingAnchor.constraint(equalTo: titleLabel.trailingAnchor, constant: -32)
+            arrow.leadingAnchor.constraint(equalTo: stack.trailingAnchor, constant: -32)
         ])
         
         button.addSubview(container)
@@ -332,23 +257,77 @@ final class HabitCreationViewController: UIViewController {
         }
     }
     
-    private func setupActions() {
-        nameTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
-        categoryButton.addTarget(self, action: #selector(categoryButtonTapped), for: .touchUpInside)
-        scheduleButton.addTarget(self, action: #selector(scheduleButtonTapped), for: .touchUpInside)
-        cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
-        createButton.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
+    private func makeCancelButton() -> UIButton {
+        let button = UIButton(type: .system)
+        button.setTitle("Отменить", for: .normal)
+        button.setTitleColor(Colors.red, for: .normal)
+        button.layer.borderWidth = 1
+        button.layer.borderColor = Colors.red.cgColor
+        button.layer.cornerRadius = 16
+        button.layer.masksToBounds = true
+        return button
     }
     
+    private func makeCreateButton() -> UIButton {
+        let button = UIButton(type: .system)
+        button.setTitle("Создать", for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
+        button.setTitleColor(Colors.white, for: .normal)
+        button.backgroundColor = Colors.gray
+        button.layer.cornerRadius = 16
+        button.layer.masksToBounds = true
+        button.isEnabled = false
+        return button
+    }
+    
+    private func makeButtonsStack() -> UIStackView {
+        let stack = UIStackView(arrangedSubviews: [cancelButton, createButton])
+        stack.axis = .horizontal
+        stack.distribution = .fillEqually
+        stack.spacing = 8
+        return stack
+    }
+    
+    private func makeScrollView() -> UIScrollView {
+        let scroll = UIScrollView()
+        scroll.showsVerticalScrollIndicator = true
+        scroll.translatesAutoresizingMaskIntoConstraints = false
+        return scroll
+    }
+    
+    private func makeContentView() -> UIView {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }
+    
+    private func makeEmojiLabel() -> UILabel {
+        let label = UILabel()
+        label.text = "Emoji"
+        label.font = .systemFont(ofSize: 19, weight: .bold)
+        label.textColor = Colors.black
+        return label
+    }
+    
+    private func makeColorLabel() -> UILabel {
+        let label = UILabel()
+        label.text = "Цвет"
+        label.font = .systemFont(ofSize: 19, weight: .bold)
+        label.textColor = Colors.black
+        return label
+    }
+    
+    // MARK: - Update Methods
     private func updateCreateButtonState() {
         let isFormValid = !(nameTextField.text?.isEmpty ?? true)
-        && (nameTextField.text?.count ?? 0) <= maxHabitNameLength
+        && (nameTextField.text?.count ?? 0) <= Constants.maxHabitNameLength
+        && selectedCategory != nil
         && !selectedSchedule.isEmpty
         && selectedEmoji != nil
         && selectedColor != nil
         
         createButton.isEnabled = isFormValid
-        createButton.backgroundColor = isFormValid ? Colors.blue : Colors.gray
+        createButton.backgroundColor = isFormValid ? Colors.black : Colors.gray
     }
     
     private func updateScheduleButtonTitle() {
@@ -365,10 +344,19 @@ final class HabitCreationViewController: UIViewController {
         }
     }
     
+    private func updateCategoryButtonTitle() {
+        guard let container = categoryButton.subviews.first,
+              let stack = container.subviews.first as? UIStackView,
+              stack.arrangedSubviews.count > 1,
+              let valueLabel = stack.arrangedSubviews[1] as? UILabel else { return }
+        
+        valueLabel.text = selectedCategory?.title
+    }
+    
     // MARK: - Actions
     @objc private func textFieldDidChange(_ textField: UITextField) {
         let text = textField.text ?? ""
-        let isErrorVisible = text.count > maxHabitNameLength
+        let isErrorVisible = text.count > Constants.maxHabitNameLength
         
         errorLabel.isHidden = !isErrorVisible
         contentView.constraints
@@ -378,33 +366,54 @@ final class HabitCreationViewController: UIViewController {
         UIView.animate(withDuration: 0.3) { self.view.layoutIfNeeded() }
         
         if isErrorVisible {
-            textField.text = String(text.prefix(maxHabitNameLength))
+            textField.text = String(text.prefix(Constants.maxHabitNameLength))
         }
         updateCreateButtonState()
     }
     
     @objc private func createButtonTapped() {
+        guard let name = nameTextField.text,
+              let category = selectedCategory,
+              let emoji = selectedEmoji,
+              let color = selectedColor else {
+            return
+        }
+        
+        let colorName = Colors.colorName(for: color) ?? "Color selection 1"
         let newTracker = Tracker(
             id: UUID(),
-            name: nameTextField.text!,
-            color: Colors.colorName(for: selectedColor!) ?? "Color selection 1",
-            emoji: selectedEmoji!,
+            name: name,
+            color: colorName,
+            emoji: emoji,
             schedule: Array(selectedSchedule),
-            colorAssetName: Colors.colorName(for: selectedColor!) ?? "Color selection 1"
+            colorAssetName: colorName
         )
         
-        onTrackerCreated?(newTracker)
-        dismiss(animated: true)
+        do {
+            try trackerStore.addTracker(newTracker, to: category)
+            dismiss(animated: true)
+        } catch {
+            print("Ошибка при создании трекера: \(error.localizedDescription)")
+        }
     }
     
     @objc private func categoryButtonTapped() {
-        let alert = UIAlertController(
-            title: "Выбор категории",
-            message: "Функционал выбора категории будет добавлен после подключения базы данных",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+        let categoriesViewModel = CategoriesViewModel()
+        
+        if let selectedCategory = selectedCategory {
+            categoriesViewModel.selectCategory(with: selectedCategory.title)
+        }
+        
+        let categoryVC = CategorySelectionViewController(viewModel: categoriesViewModel)
+        
+        categoryVC.onCategorySelected = { [weak self] (category: TrackerCategory) in
+            self?.selectedCategory = category
+            self?.updateCategoryButtonTitle()
+            self?.updateCreateButtonState()
+        }
+        
+        let navVC = UINavigationController(rootViewController: categoryVC)
+        present(navVC, animated: true)
     }
     
     @objc private func scheduleButtonTapped() {
@@ -424,6 +433,7 @@ final class HabitCreationViewController: UIViewController {
     }
 }
 
+// MARK: - Extensions
 extension UIButton {
     func setBackgroundColor(_ color: UIColor, for state: UIControl.State) {
         let image = UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1)).image { context in

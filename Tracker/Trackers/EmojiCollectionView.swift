@@ -7,7 +7,6 @@
 import UIKit
 
 final class EmojiCollectionView: UICollectionView {
-    
     // MARK: - Properties
     private(set) var selectedEmoji: String?
     var onEmojiSelected: ((String) -> Void)?

@@ -8,7 +8,6 @@
 import UIKit
 
 final class TrackerSectionHeader: UICollectionReusableView {
-    
     // MARK: - Static Properties
     static let reuseIdentifier = "header"
     

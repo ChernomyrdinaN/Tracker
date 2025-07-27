@@ -8,7 +8,6 @@
 import UIKit
 
 final class ScheduleCell: UITableViewCell {
-    
     // MARK: - UI Elements
     private let titleLabel = UILabel()
     private let switchControl = UISwitch()

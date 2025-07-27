@@ -14,22 +14,28 @@ protocol TrackerStoreDelegate: AnyObject {
 }
 
 final class TrackerStore: NSObject {
-    
     // MARK: - Properties
     weak var delegate: TrackerStoreDelegate?
     private let context: NSManagedObjectContext
     private var fetchedResultsController: NSFetchedResultsController<TrackerCoreData>?
-    private let categoryStore = TrackerCategoryStore()
     
     // MARK: - Init
-    override init() {
-        self.context = AppDelegate.viewContext
+    init(context: NSManagedObjectContext = AppDelegate.viewContext) {
+        self.context = context
         super.init()
         setupFetchedResultsController()
     }
     
     // MARK: - Public Methods
-    func addTracker(_ tracker: Tracker) {
+    func addTracker(_ tracker: Tracker, to category: TrackerCategory) throws {
+        guard !tracker.name.isEmpty else {
+            throw NSError(domain: "Validation", code: 400, userInfo: [NSLocalizedDescriptionKey: "Название трекера не может быть пустым"])
+        }
+        
+        guard !trackerExists(name: tracker.name, in: category) else {
+            throw NSError(domain: "Validation", code: 409, userInfo: [NSLocalizedDescriptionKey: "Трекер с таким названием уже существует в этой категории"])
+        }
+        
         let trackerEntity = TrackerCoreData(context: context)
         trackerEntity.id = tracker.id
         trackerEntity.name = tracker.name
@@ -37,7 +43,14 @@ final class TrackerStore: NSObject {
         trackerEntity.color = UIColor(named: tracker.color)
         trackerEntity.colorAssetName = tracker.color
         trackerEntity.schedule = tracker.schedule as NSObject
-        trackerEntity.category = getDefaultCategory()
+        
+        let categoryRequest: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
+        categoryRequest.predicate = NSPredicate(format: "id == %@", category.id as CVarArg)
+        
+        if let categoryEntity = try? context.fetch(categoryRequest).first {
+            trackerEntity.category = categoryEntity
+        }
+        
         saveContext()
     }
     
@@ -46,22 +59,22 @@ final class TrackerStore: NSObject {
         return trackerObjects.compactMap { createTracker(from: $0) }
     }
     
-    func deleteTracker(_ tracker: Tracker) {
+    func deleteTracker(_ tracker: Tracker) throws {
         let request = TrackerCoreData.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
         
-        if let trackers = try? context.fetch(request) {
-            trackers.forEach { context.delete($0) }
-            saveContext()
+        guard let trackerToDelete = try? context.fetch(request).first else {
+            throw NSError(domain: "Tracker", code: 404, userInfo: [NSLocalizedDescriptionKey: "Трекер не найден"])
         }
+        
+        context.delete(trackerToDelete)
+        saveContext()
     }
     
     // MARK: - Private Methods
     private func setupFetchedResultsController() {
         let request = TrackerCoreData.fetchRequest()
-        request.sortDescriptors = [
-            NSSortDescriptor(key: "name", ascending: true)
-        ]
+        request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
         
         fetchedResultsController = NSFetchedResultsController(
             fetchRequest: request,
@@ -79,8 +92,14 @@ final class TrackerStore: NSObject {
         }
     }
     
-    private func getDefaultCategory() -> TrackerCategoryCoreData {
-        return categoryStore.getDefaultCategory()
+    private func trackerExists(name: String, in category: TrackerCategory) -> Bool {
+        let request = TrackerCoreData.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "name == %@ AND category.id == %@",
+            name,
+            category.id as CVarArg
+        )
+        return (try? context.count(for: request)) ?? 0 > 0
     }
     
     private func createTracker(from coreData: TrackerCoreData) -> Tracker? {
@@ -103,8 +122,12 @@ final class TrackerStore: NSObject {
     }
     
     private func saveContext() {
-        if context.hasChanges {
-            try? context.save()
+        guard context.hasChanges else { return }
+        do {
+            try context.save()
+        } catch {
+            context.rollback()
+            print("Не удалось сохранить контекст: \(error)")
         }
     }
 }
