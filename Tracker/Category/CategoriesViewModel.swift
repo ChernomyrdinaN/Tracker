@@ -79,8 +79,7 @@ final class CategoriesViewModel {
     
     // MARK: - Private Methods
     private func notifyObservers() {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
+        DispatchQueue.main.async {
             self.onCategoriesUpdated?()
             self.onEmptyStateChanged?(self.isEmpty)
         }

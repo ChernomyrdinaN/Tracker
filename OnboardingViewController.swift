@@ -56,7 +56,7 @@ final class OnboardingViewController: UIPageViewController {
     
     // MARK: - Actions
     @objc private func finishOnboarding() {
-        UserDefaults.standard.set(true, forKey: "onboardingCompleted")
+        UserDefaultsService.shared.isOnboardingCompleted = true
         view.window?.rootViewController = TrackerTabBarController()
     }
 }

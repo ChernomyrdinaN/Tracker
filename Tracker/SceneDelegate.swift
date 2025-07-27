@@ -16,7 +16,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         window = UIWindow(windowScene: windowScene)
         
-        let isOnboardingCompleted = UserDefaults.standard.bool(forKey: "onboardingCompleted")
+        let isOnboardingCompleted = UserDefaultsService.shared.isOnboardingCompleted
         
         if isOnboardingCompleted {
             

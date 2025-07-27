@@ -14,7 +14,6 @@ final class HabitCreationViewController: UIViewController {
     private var selectedColor: UIColor?
     private var selectedSchedule: Set<WeekDay> = []
     private let keyboardHandler = KeyboardHandler()
-    private let maxHabitNameLength = 38
     var onTrackerCreated: ((Tracker) -> Void)?
     
     private let trackerStore = TrackerStore()
@@ -321,7 +320,7 @@ final class HabitCreationViewController: UIViewController {
     // MARK: - Update Methods
     private func updateCreateButtonState() {
         let isFormValid = !(nameTextField.text?.isEmpty ?? true)
-        && (nameTextField.text?.count ?? 0) <= maxHabitNameLength
+        && (nameTextField.text?.count ?? 0) <= Constants.maxHabitNameLength
         && selectedCategory != nil
         && !selectedSchedule.isEmpty
         && selectedEmoji != nil
@@ -357,7 +356,7 @@ final class HabitCreationViewController: UIViewController {
     // MARK: - Actions
     @objc private func textFieldDidChange(_ textField: UITextField) {
         let text = textField.text ?? ""
-        let isErrorVisible = text.count > maxHabitNameLength
+        let isErrorVisible = text.count > Constants.maxHabitNameLength
         
         errorLabel.isHidden = !isErrorVisible
         contentView.constraints
@@ -367,26 +366,31 @@ final class HabitCreationViewController: UIViewController {
         UIView.animate(withDuration: 0.3) { self.view.layoutIfNeeded() }
         
         if isErrorVisible {
-            textField.text = String(text.prefix(maxHabitNameLength))
+            textField.text = String(text.prefix(Constants.maxHabitNameLength))
         }
         updateCreateButtonState()
     }
     
     @objc private func createButtonTapped() {
         guard let name = nameTextField.text,
-              let selectedCategory = selectedCategory else { return }
+              let category = selectedCategory,
+              let emoji = selectedEmoji,
+              let color = selectedColor else {
+            return
+        }
         
+        let colorName = Colors.colorName(for: color) ?? "Color selection 1"
         let newTracker = Tracker(
             id: UUID(),
             name: name,
-            color: Colors.colorName(for: selectedColor!) ?? "Color selection 1",
-            emoji: selectedEmoji!,
+            color: colorName,
+            emoji: emoji,
             schedule: Array(selectedSchedule),
-            colorAssetName: Colors.colorName(for: selectedColor!) ?? "Color selection 1"
+            colorAssetName: colorName
         )
         
         do {
-            try trackerStore.addTracker(newTracker, to: selectedCategory)
+            try trackerStore.addTracker(newTracker, to: category)
             dismiss(animated: true)
         } catch {
             print("Ошибка при создании трекера: \(error.localizedDescription)")
@@ -394,12 +398,15 @@ final class HabitCreationViewController: UIViewController {
     }
     
     @objc private func categoryButtonTapped() {
-        let categoryVC = CategorySelectionViewController()
+        let categoriesViewModel = CategoriesViewModel()
+        
         if let selectedCategory = selectedCategory {
-            categoryVC.viewModel.selectCategory(with: selectedCategory.title)
+            categoriesViewModel.selectCategory(with: selectedCategory.title)
         }
         
-        categoryVC.onCategorySelected = { [weak self] category in
+        let categoryVC = CategorySelectionViewController(viewModel: categoriesViewModel)
+        
+        categoryVC.onCategorySelected = { [weak self] (category: TrackerCategory) in
             self?.selectedCategory = category
             self?.updateCategoryButtonTitle()
             self?.updateCreateButtonState()

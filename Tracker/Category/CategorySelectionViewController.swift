@@ -9,9 +9,19 @@ import UIKit
 
 final class CategorySelectionViewController: UIViewController {
     // MARK: - Properties
-    let viewModel = CategoriesViewModel()
     var onCategorySelected: ((TrackerCategory) -> Void)?
+    private let viewModel: CategoriesViewModel
     
+    // MARK: - Init
+       init(viewModel: CategoriesViewModel) { 
+           self.viewModel = viewModel
+           super.init(nibName: nil, bundle: nil)
+       }
+       
+       required init?(coder: NSCoder) {
+           fatalError("init(coder:) has not been implemented")
+       }
+
     // MARK: - UI Elements
     private lazy var titleLabel = makeTitleLabel()
     private lazy var errorImageView = makeErrorImageView()
