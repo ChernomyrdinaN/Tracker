@@ -4,6 +4,12 @@
 //
 //  Created by Наталья Черномырдина on 14.06.2025.
 //
+//
+//  TrackersViewController.swift
+//  Tracker
+//
+//  Created by Наталья Черномырдина on 14.06.2025.
+//
 
 import UIKit
 
@@ -237,6 +243,43 @@ final class TrackersViewController: UIViewController {
     @objc private func datePickerValueChanged(_ sender: UIDatePicker) {
         currentDate = sender.date
     }
+    
+    private func showDeleteConfirmation(for trackerId: UUID) {
+        guard let tracker = trackerStore.fetchTrackers().first(where: { $0.id == trackerId }) else { return }
+        
+        let alert = UIAlertController(
+            title: "Уверены что хотите удалить трекер?",
+            message: nil,
+            preferredStyle: .actionSheet
+        )
+        
+        let deleteAction = UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+            do {
+                try self?.trackerStore.deleteTracker(tracker)
+            } catch {
+                self?.showError(message: "Не удалось удалить трекер")
+            }
+        }
+        
+        let cancelAction = UIAlertAction(title: "Отменить", style: .cancel)
+        
+        alert.addAction(deleteAction)
+        alert.addAction(cancelAction)
+        
+        if let popover = alert.popoverPresentationController {
+            popover.sourceView = self.view
+            popover.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+            popover.permittedArrowDirections = []
+        }
+        
+        present(alert, animated: true)
+    }
+    
+    private func showError(message: String) {
+        let alert = UIAlertController(title: "Ошибка", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
 }
 
 // MARK: - UICollectionViewDataSource
@@ -270,6 +313,10 @@ extension TrackersViewController: UICollectionViewDataSource {
         
         cell.onPlusButtonTapped = { [weak self] trackerId, date, isCompleted in
             self?.recordStore.toggleRecord(for: trackerId, date: date)
+        }
+        
+        cell.onDeleteTapped = { [weak self] trackerId in
+            self?.showDeleteConfirmation(for: trackerId)
         }
         
         return cell

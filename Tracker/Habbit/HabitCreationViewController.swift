@@ -373,24 +373,19 @@ final class HabitCreationViewController: UIViewController {
     
     @objc private func createButtonTapped() {
         guard let name = nameTextField.text,
-              let category = selectedCategory,
-              let emoji = selectedEmoji,
-              let color = selectedColor else {
-            return
-        }
+              let selectedCategory = selectedCategory else { return }
         
-        let colorName = Colors.colorName(for: color) ?? "Color selection 1"
         let newTracker = Tracker(
             id: UUID(),
             name: name,
-            color: colorName,
-            emoji: emoji,
+            color: Colors.colorName(for: selectedColor!) ?? "Color selection 1",
+            emoji: selectedEmoji!,
             schedule: Array(selectedSchedule),
-            colorAssetName: colorName
+            colorAssetName: Colors.colorName(for: selectedColor!) ?? "Color selection 1"
         )
         
         do {
-            try trackerStore.addTracker(newTracker, to: category)
+            try trackerStore.addTracker(newTracker, to: selectedCategory)
             dismiss(animated: true)
         } catch {
             print("Ошибка при создании трекера: \(error.localizedDescription)")
