@@ -4,12 +4,6 @@
 //
 //  Created by Наталья Черномырдина on 14.06.2025.
 //
-//
-//  TrackersViewController.swift
-//  Tracker
-//
-//  Created by Наталья Черномырдина on 14.06.2025.
-//
 
 import UIKit
 
@@ -23,15 +17,12 @@ final class TrackersViewController: UIViewController {
     private var currentDate = Date() {
         didSet { updateUIForCurrentState() }
     }
-    
     private var categories: [TrackerCategory] = [] {
         didSet { updateUIForCurrentState() }
     }
-    
     private var completedTrackers: [TrackerRecord] = [] {
         didSet { collectionView.reloadData() }
     }
-    
     private var filteredCategories: [TrackerCategory] {
         categories.compactMap { category in
             let filtered = category.trackers.filter { isTrackerVisible($0, for: currentDate) }
@@ -42,7 +33,6 @@ final class TrackersViewController: UIViewController {
             )
         }
     }
-    
     private var isEmptyState: Bool {
         filteredCategories.isEmpty
     }
@@ -66,7 +56,27 @@ final class TrackersViewController: UIViewController {
         loadInitialData()
     }
     
-    // MARK: - Setup Methods
+    // MARK: - Actions
+    @objc private func addButtonTapped() {
+        let habitVC = HabitCreationViewController()
+        habitVC.modalPresentationStyle = .formSheet
+        
+        habitVC.onTrackerCreated = { [weak self] newTracker in
+            guard let self = self,
+                  let firstCategory = self.categoryStore.fetchAllCategories().first else { return }
+            
+            try? self.trackerStore.addTracker(newTracker, to: firstCategory)
+            self.loadInitialData()
+        }
+        
+        present(UINavigationController(rootViewController: habitVC), animated: true)
+    }
+    
+    @objc private func datePickerValueChanged(_ sender: UIDatePicker) {
+        currentDate = sender.date
+    }
+    
+    // MARK: - Private Methods
     private func setupUI() {
         view.backgroundColor = Colors.white
         
@@ -109,6 +119,89 @@ final class TrackersViewController: UIViewController {
         recordStore.delegate = self
         searchField.delegate = keyboardHandler
         keyboardHandler.setup(for: self)
+    }
+    
+    private func loadInitialData() {
+        categories = categoryStore.fetchAllCategories()
+        completedTrackers = recordStore.fetchRecords()
+    }
+    
+    private func updateUIForCurrentState() {
+        errorImageView.isHidden = !isEmptyState
+        trackLabel.isHidden = !isEmptyState
+        collectionView.isHidden = isEmptyState
+        collectionView.reloadData()
+    }
+    
+    private func isTrackerVisible(_ tracker: Tracker, for date: Date) -> Bool {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: date)
+        return tracker.schedule.contains { $0.calendarIndex == weekday }
+    }
+    
+    private func isTrackerCompletedToday(_ trackerId: UUID) -> Bool {
+        completedTrackers.contains { record in
+            record.trackerId == trackerId &&
+            Calendar.current.isDate(record.date, inSameDayAs: currentDate)
+        }
+    }
+    
+    // MARK: - Alert Methods
+    private func showDeleteConfirmation(for trackerId: UUID) {
+        guard let tracker = trackerStore.fetchTrackers().first(where: { $0.id == trackerId }) else { return }
+        
+        let alert = UIAlertController(
+            title: "Уверены что хотите удалить трекер?",
+            message: nil,
+            preferredStyle: .actionSheet
+        )
+        
+        let deleteAction = UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+            do {
+                try self?.trackerStore.deleteTracker(tracker)
+            } catch {
+                self?.showError(message: "Не удалось удалить трекер")
+            }
+        }
+        
+        let cancelAction = UIAlertAction(title: "Отменить", style: .cancel)
+        
+        alert.addAction(deleteAction)
+        alert.addAction(cancelAction)
+        
+        if let popover = alert.popoverPresentationController {
+            popover.sourceView = self.view
+            popover.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+            popover.permittedArrowDirections = []
+        }
+        
+        present(alert, animated: true)
+    }
+    
+    private func showError(message: String) {
+        let alert = UIAlertController(title: "Ошибка", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+    
+    // MARK: - Navigation Methods
+    private func showEditScreen(for tracker: Tracker, category: TrackerCategory) {
+        let editVC = EditHabitViewController(
+            tracker: tracker,
+            category: category,
+            trackerStore: trackerStore
+        )
+        
+        editVC.onTrackerCreated = { [weak self] updatedTracker in
+            do {
+                try self?.trackerStore.updateTracker(updatedTracker, in: category)
+            } catch {
+                self?.showError(message: "Не удалось обновить трекер")
+            }
+        }
+        
+        let navVC = UINavigationController(rootViewController: editVC)
+        present(navVC, animated: true)
     }
     
     // MARK: - UI Factory Methods
@@ -195,91 +288,6 @@ final class TrackersViewController: UIViewController {
         picker.tintColor = Colors.blue
         return picker
     }
-    
-    // MARK: - Data Methods
-    private func loadInitialData() {
-        categories = categoryStore.fetchAllCategories()
-        completedTrackers = recordStore.fetchRecords()
-    }
-    
-    // MARK: - Update Methods
-    private func updateUIForCurrentState() {
-        errorImageView.isHidden = !isEmptyState
-        trackLabel.isHidden = !isEmptyState
-        collectionView.isHidden = isEmptyState
-        collectionView.reloadData()
-    }
-    
-    // MARK: - Helper Methods
-    private func isTrackerVisible(_ tracker: Tracker, for date: Date) -> Bool {
-        let calendar = Calendar.current
-        let weekday = calendar.component(.weekday, from: date)
-        return tracker.schedule.contains { $0.calendarIndex == weekday }
-    }
-    
-    private func isTrackerCompletedToday(_ trackerId: UUID) -> Bool {
-        completedTrackers.contains { record in
-            record.trackerId == trackerId &&
-            Calendar.current.isDate(record.date, inSameDayAs: currentDate)
-        }
-    }
-    
-    // MARK: - Actions
-    @objc private func addButtonTapped() {
-        let habitVC = HabitCreationViewController()
-        habitVC.modalPresentationStyle = .formSheet
-        
-        habitVC.onTrackerCreated = { [weak self] newTracker in
-            guard let self = self,
-                  let firstCategory = self.categoryStore.fetchAllCategories().first else { return }
-            
-            try? self.trackerStore.addTracker(newTracker, to: firstCategory)
-            self.loadInitialData()
-        }
-        
-        present(UINavigationController(rootViewController: habitVC), animated: true)
-    }
-    
-    @objc private func datePickerValueChanged(_ sender: UIDatePicker) {
-        currentDate = sender.date
-    }
-    
-    private func showDeleteConfirmation(for trackerId: UUID) {
-        guard let tracker = trackerStore.fetchTrackers().first(where: { $0.id == trackerId }) else { return }
-        
-        let alert = UIAlertController(
-            title: "Уверены что хотите удалить трекер?",
-            message: nil,
-            preferredStyle: .actionSheet
-        )
-        
-        let deleteAction = UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
-            do {
-                try self?.trackerStore.deleteTracker(tracker)
-            } catch {
-                self?.showError(message: "Не удалось удалить трекер")
-            }
-        }
-        
-        let cancelAction = UIAlertAction(title: "Отменить", style: .cancel)
-        
-        alert.addAction(deleteAction)
-        alert.addAction(cancelAction)
-        
-        if let popover = alert.popoverPresentationController {
-            popover.sourceView = self.view
-            popover.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
-            popover.permittedArrowDirections = []
-        }
-        
-        present(alert, animated: true)
-    }
-    
-    private func showError(message: String) {
-        let alert = UIAlertController(title: "Ошибка", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
-    }
 }
 
 // MARK: - UICollectionViewDataSource
@@ -289,12 +297,12 @@ extension TrackersViewController: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView,
-                       numberOfItemsInSection section: Int) -> Int {
+                        numberOfItemsInSection section: Int) -> Int {
         filteredCategories[section].trackers.count
     }
     
     func collectionView(_ collectionView: UICollectionView,
-                       cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+                        cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: "TrackerCell",
             for: indexPath
@@ -303,6 +311,7 @@ extension TrackersViewController: UICollectionViewDataSource {
         }
         
         let tracker = filteredCategories[indexPath.section].trackers[indexPath.item]
+        let category = filteredCategories[indexPath.section]
         
         cell.configure(
             with: tracker,
@@ -317,6 +326,11 @@ extension TrackersViewController: UICollectionViewDataSource {
         
         cell.onDeleteTapped = { [weak self] trackerId in
             self?.showDeleteConfirmation(for: trackerId)
+        }
+        
+        cell.onEditTapped = { [weak self] trackerId in
+            guard let tracker = self?.trackerStore.fetchTrackers().first(where: { $0.id == trackerId }) else { return }
+            self?.showEditScreen(for: tracker, category: category)
         }
         
         return cell
