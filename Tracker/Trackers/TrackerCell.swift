@@ -168,7 +168,7 @@ final class TrackerCell: UICollectionViewCell {
             UIView.animate(withDuration: 0.2) {
                 self.containerView.alpha = self.isHighlighted ? 0.7 : 1.0
                 self.containerView.transform = self.isHighlighted ?
-                    CGAffineTransform(scaleX: 0.96, y: 0.96) : .identity
+                CGAffineTransform(scaleX: 0.96, y: 0.96) : .identity
             }
         }
     }
@@ -185,18 +185,10 @@ final class TrackerCell: UICollectionViewCell {
     }
     
     private func formattedDaysCount(_ count: Int) -> String {
-        let remainder = count % 10
-        let remainder100 = count % 100
-        
-        if remainder100 >= 11 && remainder100 <= 19 {
-            return "\(count) дней"
-        } else if remainder == 1 {
-            return "\(count) день"
-        } else if remainder >= 2 && remainder <= 4 {
-            return "\(count) дня"
-        } else {
-            return "\(count) дней"
-        }
+        return String.localizedStringWithFormat(
+            NSLocalizedString("days_count", comment: "Number of days completed"),
+            count
+        )
     }
     
     // MARK: - Actions
