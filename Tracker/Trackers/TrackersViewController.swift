@@ -35,18 +35,19 @@ final class TrackersViewController: UIViewController {
     private var completedTrackers: [TrackerRecord] = [] {
         didSet { collectionView.reloadData() }
     }
-    private var filteredCategories: [TrackerCategory] {
-        categories.compactMap { category in
-            let filtered = category.trackers.filter { isTrackerVisible($0, for: currentDate) }
-            return filtered.isEmpty ? nil : TrackerCategory(
-                id: category.id,
-                title: category.title,
-                trackers: filtered
-            )
+    private var filteredCategories: [TrackerCategory] = [] {
+        didSet {
+            collectionView.reloadData()
         }
     }
     private var isEmptyState: Bool {
         filteredCategories.isEmpty
+    }
+    
+    private var currentFilter: FilterType = .all {
+        didSet {
+            applyFilter()
+        }
     }
     
     // MARK: - UI Elements
@@ -57,9 +58,8 @@ final class TrackersViewController: UIViewController {
     private lazy var collectionView = makeCollectionView()
     private lazy var addButton = makeAddButton()
     private lazy var datePicker = makeDatePicker()
+    private lazy var filterButton = makeFilterButton()
     private lazy var datePickerBarButton = UIBarButtonItem(customView: datePicker)
-    // TODO: Реализовать кнопку фильтра
-    // private lazy var filterButton = makeFilterButton()
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -81,12 +81,12 @@ final class TrackersViewController: UIViewController {
         super.viewWillAppear(animated)
         analyticsService.trackScreenOpen(Analytics.screenName)
     }
-
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         analyticsService.trackScreenClose(Analytics.screenName)
     }
-
+    
     // MARK: - Actions
     @objc private func addButtonTapped() {
         analyticsService.trackButtonClick(Analytics.screenName, item: Analytics.addTracker)
@@ -104,13 +104,15 @@ final class TrackersViewController: UIViewController {
         present(UINavigationController(rootViewController: habitVC), animated: true)
     }
     
-    // TODO: Реализовать метод для фильтрации
-    /*
     @objc private func filterButtonTapped() {
         analyticsService.trackButtonClick(Analytics.screenName, item: Analytics.filter)
-        // Логика фильтрации
+        let filterVC = FilterViewController()
+        filterVC.selectedFilter = currentFilter
+        filterVC.onFilterSelected = { [weak self] filter in
+            self?.currentFilter = filter
+        }
+        present(filterVC, animated: true)
     }
-    */
     
     @objc private func datePickerValueChanged(_ sender: UIDatePicker) {
         currentDate = sender.date
@@ -127,7 +129,7 @@ final class TrackersViewController: UIViewController {
         view.backgroundColor = Colors.white
         
         [titleLabel, searchField, errorImageView,
-         trackLabel, collectionView].forEach {
+         trackLabel, collectionView, filterButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
@@ -151,15 +153,18 @@ final class TrackersViewController: UIViewController {
             collectionView.topAnchor.constraint(equalTo: searchField.bottomAnchor, constant: 10),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            filterButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            filterButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            filterButton.widthAnchor.constraint(equalToConstant: 114),
+            filterButton.heightAnchor.constraint(equalToConstant: 50)
         ])
     }
     
     private func setupNavigationBar() {
         navigationItem.leftBarButtonItem = addButton
         navigationItem.rightBarButtonItem = datePickerBarButton
-        // TODO: Добавить кнопку фильтра когда будет реализована
-        // navigationItem.rightBarButtonItems = [datePickerBarButton, filterButton]
     }
     
     private func setupDelegates() {
@@ -175,10 +180,10 @@ final class TrackersViewController: UIViewController {
     }
     
     private func updateUIForCurrentState() {
-        errorImageView.isHidden = !isEmptyState
-        trackLabel.isHidden = !isEmptyState
-        collectionView.isHidden = isEmptyState
-        collectionView.reloadData()
+        let isEmpty = filteredCategories.isEmpty
+        errorImageView.isHidden = !isEmpty
+        trackLabel.isHidden = !isEmpty
+        collectionView.isHidden = isEmpty
     }
     
     private func isTrackerVisible(_ tracker: Tracker, for date: Date) -> Bool {
@@ -192,6 +197,64 @@ final class TrackersViewController: UIViewController {
             record.trackerId == trackerId &&
             Calendar.current.isDate(record.date, inSameDayAs: currentDate)
         }
+    }
+    
+    private func applyFilter() {
+        let today = Calendar.current.startOfDay(for: Date())
+        
+        switch currentFilter {
+        case .all:
+            filteredCategories = categories.compactMap { category in
+                let filtered = category.trackers.filter { isTrackerVisible($0, for: currentDate) }
+                return filtered.isEmpty ? nil : TrackerCategory(
+                    id: category.id,
+                    title: category.title,
+                    trackers: filtered
+                )
+            }
+            
+        case .today:
+            currentDate = today
+            datePicker.setDate(today, animated: true)
+            filteredCategories = categories.compactMap { category in
+                let filtered = category.trackers.filter { isTrackerVisible($0, for: today) }
+                return filtered.isEmpty ? nil : TrackerCategory(
+                    id: category.id,
+                    title: category.title,
+                    trackers: filtered
+                )
+            }
+            
+        case .completed:
+            filteredCategories = categories.compactMap { category in
+                let filtered = category.trackers.filter { tracker in
+                    let isVisible = isTrackerVisible(tracker, for: currentDate)
+                    let isCompleted = isTrackerCompletedToday(tracker.id)
+                    return isVisible && isCompleted
+                }
+                return filtered.isEmpty ? nil : TrackerCategory(
+                    id: category.id,
+                    title: category.title,
+                    trackers: filtered
+                )
+            }
+            
+        case .uncompleted:
+            filteredCategories = categories.compactMap { category in
+                let filtered = category.trackers.filter { tracker in
+                    let isVisible = isTrackerVisible(tracker, for: currentDate)
+                    let isCompleted = isTrackerCompletedToday(tracker.id)
+                    return isVisible && !isCompleted
+                }
+                return filtered.isEmpty ? nil : TrackerCategory(
+                    id: category.id,
+                    title: category.title,
+                    trackers: filtered
+                )
+            }
+        }
+        
+        updateUIForCurrentState()
     }
     
     // MARK: - Alert Methods
@@ -329,19 +392,6 @@ final class TrackersViewController: UIViewController {
         return button
     }
     
-    /*
-    private func makeFilterButton() -> UIBarButtonItem {
-        let button = UIBarButtonItem(
-            title: "Фильтры",
-            style: .plain,
-            target: self,
-            action: #selector(filterButtonTapped)
-        )
-        button.tintColor = Colors.blue
-        return button
-    }
-    */
-    
     private func makeDatePicker() -> UIDatePicker {
         let picker = UIDatePicker()
         picker.datePickerMode = .date
@@ -350,6 +400,18 @@ final class TrackersViewController: UIViewController {
         picker.addTarget(self, action: #selector(datePickerValueChanged), for: .valueChanged)
         picker.tintColor = Colors.blue
         return picker
+    }
+    
+    private func makeFilterButton() -> UIButton {
+        let button = UIButton(type: .system)
+        button.setTitle(NSLocalizedString("Filters", comment: "Filter button title"), for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 17, weight: .regular)
+        button.setTitleColor(Colors.white, for: .normal)
+        button.backgroundColor = Colors.blue
+        button.layer.cornerRadius = 16
+        button.addTarget(self, action: #selector(filterButtonTapped), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
     }
 }
 

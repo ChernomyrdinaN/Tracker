@@ -8,8 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		6E622CB82E3EA166006D5C39 /* AppMetricaCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6E622CB72E3EA166006D5C39 /* AppMetricaCore */; };
-		6EC7D5BA2E3D0170009F0B1B /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = 6EC7D5B82E3D0170009F0B1B /* Localizable.stringsdict */; };
-		6EC7D5C22E3D05DB009F0B1B /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6EC7D5C02E3D05DB009F0B1B /* Localizable.strings */; };
 		6EC7D5D72E3D205C009F0B1B /* InlineSnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 6EC7D5D62E3D205C009F0B1B /* InlineSnapshotTesting */; };
 		6EC7D5D92E3D2061009F0B1B /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 6EC7D5D82E3D2061009F0B1B /* SnapshotTesting */; };
 		6EC7D5DB2E3D2065009F0B1B /* SnapshotTestingCustomDump in Frameworks */ = {isa = PBXBuildFile; productRef = 6EC7D5DA2E3D2065009F0B1B /* SnapshotTestingCustomDump */; };
@@ -27,10 +25,6 @@
 
 /* Begin PBXFileReference section */
 		6E3F0F662E23ACD500634C2E /* Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		6EC7D5B92E3D0170009F0B1B /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = en; path = en.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
-		6EC7D5BF2E3D047F009F0B1B /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = ru; path = ru.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
-		6EC7D5C12E3D05DB009F0B1B /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
-		6EC7D5C32E3D05E7009F0B1B /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		6EC7D5C82E3D1EA8009F0B1B /* TrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -45,6 +39,11 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		6E622CBB2E3FEE75006D5C39 /* Local */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Local;
+			sourceTree = "<group>";
+		};
 		6EC7D5C92E3D1EA8009F0B1B /* TrackerTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = TrackerTests;
@@ -82,23 +81,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		6E622CB62E3EA166006D5C39 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 		6EF641152DFDEF1A00217041 = {
 			isa = PBXGroup;
 			children = (
-				6EC7D5C02E3D05DB009F0B1B /* Localizable.strings */,
-				6EC7D5B82E3D0170009F0B1B /* Localizable.stringsdict */,
+				6E622CBB2E3FEE75006D5C39 /* Local */,
 				6EF641202DFDEF1A00217041 /* Tracker */,
 				6E3F0F662E23ACD500634C2E /* Tracker.app */,
 				6EC7D5C82E3D1EA8009F0B1B /* TrackerTests.xctest */,
 				6EC7D5C92E3D1EA8009F0B1B /* TrackerTests */,
-				6E622CB62E3EA166006D5C39 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -144,6 +134,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				6E622CBB2E3FEE75006D5C39 /* Local */,
 				6EF641202DFDEF1A00217041 /* Tracker */,
 			);
 			name = Tracker;
@@ -210,8 +201,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6EC7D5C22E3D05DB009F0B1B /* Localizable.strings in Resources */,
-				6EC7D5BA2E3D0170009F0B1B /* Localizable.stringsdict in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -241,27 +230,6 @@
 			targetProxy = 6EC7D5CC2E3D1EA9009F0B1B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
-
-/* Begin PBXVariantGroup section */
-		6EC7D5B82E3D0170009F0B1B /* Localizable.stringsdict */ = {
-			isa = PBXVariantGroup;
-			children = (
-				6EC7D5B92E3D0170009F0B1B /* en */,
-				6EC7D5BF2E3D047F009F0B1B /* ru */,
-			);
-			name = Localizable.stringsdict;
-			sourceTree = "<group>";
-		};
-		6EC7D5C02E3D05DB009F0B1B /* Localizable.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				6EC7D5C12E3D05DB009F0B1B /* en */,
-				6EC7D5C32E3D05E7009F0B1B /* ru */,
-			);
-			name = Localizable.strings;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		6EC7D5CF2E3D1EA9009F0B1B /* Debug */ = {
