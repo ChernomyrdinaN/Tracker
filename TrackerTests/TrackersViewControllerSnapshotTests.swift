@@ -11,7 +11,6 @@ import SnapshotTesting
 
 final class TrackersViewControllerSnapshotTests: XCTestCase {
     
-    // Тест для светлой темы
     func testLightTheme() {
         let vc = TrackersViewController()
         vc.overrideUserInterfaceStyle = .light
@@ -24,7 +23,6 @@ final class TrackersViewControllerSnapshotTests: XCTestCase {
         )
     }
     
-    // Тест для тёмной темы
     func testDarkTheme() {
         let vc = TrackersViewController()
         vc.overrideUserInterfaceStyle = .dark

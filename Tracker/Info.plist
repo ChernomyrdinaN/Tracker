@@ -15,6 +15,8 @@
 					<string>Default Configuration</string>
 					<key>UISceneDelegateClassName</key>
 					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+                    <key>NSUserTrackingUsageDescription</key>
+                    <string>This identifier will be used to deliver personalized ads to you.</string>
 				</dict>
 			</array>
 		</dict>

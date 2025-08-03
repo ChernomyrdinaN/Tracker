@@ -8,6 +8,8 @@
 import UIKit
 
 final class TrackersViewController: UIViewController {
+    private let analyticsService: AnalyticsServiceProtocol = AnalyticsService.shared
+    
     // MARK: - Properties
     private let trackerStore = TrackerStore()
     private let categoryStore = TrackerCategoryStore()
@@ -63,8 +65,19 @@ final class TrackersViewController: UIViewController {
         )
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        analyticsService.trackScreenOpen("Trackers")
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        analyticsService.trackScreenClose("Trackers")
+    }
+
     // MARK: - Actions
     @objc private func addButtonTapped() {
+        analyticsService.trackButtonClick("Trackers", item: "add_tracker")
         let habitVC = HabitCreationViewController()
         habitVC.modalPresentationStyle = .formSheet
         
@@ -161,6 +174,7 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Alert Methods
     private func showDeleteConfirmation(for trackerId: UUID) {
+        analyticsService.trackButtonClick("Trackers", item: "delete")
         guard let tracker = trackerStore.fetchTrackers().first(where: { $0.id == trackerId }) else { return }
         
         let alert = UIAlertController(
@@ -199,6 +213,7 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Navigation Methods
     private func showEditScreen(for tracker: Tracker, category: TrackerCategory) {
+        analyticsService.trackButtonClick("Trackers", item: "edit")
         let editVC = EditHabitViewController(
             tracker: tracker,
             category: category,
@@ -334,6 +349,7 @@ extension TrackersViewController: UICollectionViewDataSource {
         )
         
         cell.onPlusButtonTapped = { [weak self] trackerId, date, isCompleted in
+            self?.analyticsService.trackButtonClick("Trackers", item: "tracker")
             self?.recordStore.toggleRecord(for: trackerId, date: date)
         }
         
