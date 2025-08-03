@@ -8,14 +8,24 @@
 import UIKit
 
 final class TrackersViewController: UIViewController {
-    private let analyticsService: AnalyticsServiceProtocol = AnalyticsService.shared
+    // MARK: - Analytics Constants
+    private enum Analytics {
+        static let screenName = "Main"
+        static let addTracker = "add_tracker"
+        static let tracker = "tracker"
+        static let filter = "filter"
+        static let edit = "edit"
+        static let delete = "delete"
+    }
     
-    // MARK: - Properties
+    // MARK: - Services
+    private let analyticsService: AnalyticsService = .shared
     private let trackerStore = TrackerStore()
     private let categoryStore = TrackerCategoryStore()
     private let recordStore = TrackerRecordStore()
     private let keyboardHandler = KeyboardHandler()
     
+    // MARK: - Properties
     private var currentDate = Date() {
         didSet { updateUIForCurrentState() }
     }
@@ -48,6 +58,8 @@ final class TrackersViewController: UIViewController {
     private lazy var addButton = makeAddButton()
     private lazy var datePicker = makeDatePicker()
     private lazy var datePickerBarButton = UIBarButtonItem(customView: datePicker)
+    // TODO: Реализовать кнопку фильтра
+    // private lazy var filterButton = makeFilterButton()
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -67,17 +79,17 @@ final class TrackersViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        analyticsService.trackScreenOpen("Trackers")
+        analyticsService.trackScreenOpen(Analytics.screenName)
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        analyticsService.trackScreenClose("Trackers")
+        analyticsService.trackScreenClose(Analytics.screenName)
     }
 
     // MARK: - Actions
     @objc private func addButtonTapped() {
-        analyticsService.trackButtonClick("Trackers", item: "add_tracker")
+        analyticsService.trackButtonClick(Analytics.screenName, item: Analytics.addTracker)
         let habitVC = HabitCreationViewController()
         habitVC.modalPresentationStyle = .formSheet
         
@@ -91,6 +103,14 @@ final class TrackersViewController: UIViewController {
         
         present(UINavigationController(rootViewController: habitVC), animated: true)
     }
+    
+    // TODO: Реализовать метод для фильтрации
+    /*
+    @objc private func filterButtonTapped() {
+        analyticsService.trackButtonClick(Analytics.screenName, item: Analytics.filter)
+        // Логика фильтрации
+    }
+    */
     
     @objc private func datePickerValueChanged(_ sender: UIDatePicker) {
         currentDate = sender.date
@@ -138,6 +158,8 @@ final class TrackersViewController: UIViewController {
     private func setupNavigationBar() {
         navigationItem.leftBarButtonItem = addButton
         navigationItem.rightBarButtonItem = datePickerBarButton
+        // TODO: Добавить кнопку фильтра когда будет реализована
+        // navigationItem.rightBarButtonItems = [datePickerBarButton, filterButton]
     }
     
     private func setupDelegates() {
@@ -174,7 +196,7 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Alert Methods
     private func showDeleteConfirmation(for trackerId: UUID) {
-        analyticsService.trackButtonClick("Trackers", item: "delete")
+        analyticsService.trackButtonClick(Analytics.screenName, item: Analytics.delete)
         guard let tracker = trackerStore.fetchTrackers().first(where: { $0.id == trackerId }) else { return }
         
         let alert = UIAlertController(
@@ -213,7 +235,7 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Navigation Methods
     private func showEditScreen(for tracker: Tracker, category: TrackerCategory) {
-        analyticsService.trackButtonClick("Trackers", item: "edit")
+        analyticsService.trackButtonClick(Analytics.screenName, item: Analytics.edit)
         let editVC = EditHabitViewController(
             tracker: tracker,
             category: category,
@@ -307,6 +329,19 @@ final class TrackersViewController: UIViewController {
         return button
     }
     
+    /*
+    private func makeFilterButton() -> UIBarButtonItem {
+        let button = UIBarButtonItem(
+            title: "Фильтры",
+            style: .plain,
+            target: self,
+            action: #selector(filterButtonTapped)
+        )
+        button.tintColor = Colors.blue
+        return button
+    }
+    */
+    
     private func makeDatePicker() -> UIDatePicker {
         let picker = UIDatePicker()
         picker.datePickerMode = .date
@@ -349,7 +384,7 @@ extension TrackersViewController: UICollectionViewDataSource {
         )
         
         cell.onPlusButtonTapped = { [weak self] trackerId, date, isCompleted in
-            self?.analyticsService.trackButtonClick("Trackers", item: "tracker")
+            self?.analyticsService.trackButtonClick(Analytics.screenName, item: Analytics.tracker)
             self?.recordStore.toggleRecord(for: trackerId, date: date)
         }
         
