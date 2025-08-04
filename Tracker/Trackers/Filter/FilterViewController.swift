@@ -84,8 +84,12 @@ extension FilterViewController: UITableViewDataSource, UITableViewDelegate {
         }
         
         let filter = filters[indexPath.row]
-        let isSelected = filter == selectedFilter && filter != .all
-        cell.configure(with: filter, isSelected: isSelected)
+        
+        let shouldShowCheckmark = (filter == selectedFilter) &&
+        (filter != .all) &&
+        (filter != .today)
+        
+        cell.configure(with: filter, isSelected: shouldShowCheckmark)
         
         cell.separatorInset = indexPath.row == filters.count - 1 ?
         UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude) :
@@ -103,6 +107,7 @@ extension FilterViewController: UITableViewDataSource, UITableViewDelegate {
         let selectedFilter = filters[indexPath.row]
         self.selectedFilter = selectedFilter
         onFilterSelected?(selectedFilter)
+        UserDefaults.standard.set(selectedFilter.rawValue, forKey: "currentFilter")
         dismiss(animated: true)
     }
 }

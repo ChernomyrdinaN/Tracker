@@ -68,6 +68,7 @@ final class TrackersViewController: UIViewController {
         setupNavigationBar()
         setupDelegates()
         loadInitialData()
+        loadCurrentFilter()
         
         NotificationCenter.default.addObserver(
             self,
@@ -116,6 +117,7 @@ final class TrackersViewController: UIViewController {
     
     @objc private func datePickerValueChanged(_ sender: UIDatePicker) {
         currentDate = sender.date
+        applyFilter()
     }
     
     @objc private func languageDidChange() {
@@ -180,10 +182,25 @@ final class TrackersViewController: UIViewController {
     }
     
     private func updateUIForCurrentState() {
-        let isEmpty = filteredCategories.isEmpty
-        errorImageView.isHidden = !isEmpty
-        trackLabel.isHidden = !isEmpty
-        collectionView.isHidden = isEmpty
+        // Проверяем, есть ли трекеры на текущую дату (без учёта фильтра)
+        let hasTrackers = categories.contains { category in
+            category.trackers.contains { isTrackerVisible($0, for: currentDate) }
+        }
+
+        // Заглушка показывается, если после фильтрации ничего не найдено
+        let isEmptyAfterFilter = filteredCategories.isEmpty
+        errorImageView.isHidden = !isEmptyAfterFilter
+        trackLabel.isHidden = !isEmptyAfterFilter
+        collectionView.isHidden = isEmptyAfterFilter
+
+        filterButton.isHidden = !hasTrackers
+
+        collectionView.contentInset = UIEdgeInsets(
+            top: 0,
+            left: 0,
+            bottom: filterButton.isHidden ? 0 : 70,
+            right: 0
+        )
     }
     
     private func isTrackerVisible(_ tracker: Tracker, for date: Date) -> Bool {
@@ -228,9 +245,12 @@ final class TrackersViewController: UIViewController {
         case .completed:
             filteredCategories = categories.compactMap { category in
                 let filtered = category.trackers.filter { tracker in
-                    let isVisible = isTrackerVisible(tracker, for: currentDate)
-                    let isCompleted = isTrackerCompletedToday(tracker.id)
-                    return isVisible && isCompleted
+                    guard isTrackerVisible(tracker, for: currentDate) else { return false }
+                    
+                    return completedTrackers.contains { record in
+                        record.trackerId == tracker.id &&
+                        Calendar.current.isDate(record.date, inSameDayAs: currentDate)
+                    }
                 }
                 return filtered.isEmpty ? nil : TrackerCategory(
                     id: category.id,
@@ -242,9 +262,12 @@ final class TrackersViewController: UIViewController {
         case .uncompleted:
             filteredCategories = categories.compactMap { category in
                 let filtered = category.trackers.filter { tracker in
-                    let isVisible = isTrackerVisible(tracker, for: currentDate)
-                    let isCompleted = isTrackerCompletedToday(tracker.id)
-                    return isVisible && !isCompleted
+                    guard isTrackerVisible(tracker, for: currentDate) else { return false }
+                    
+                    return !completedTrackers.contains { record in
+                        record.trackerId == tracker.id &&
+                        Calendar.current.isDate(record.date, inSameDayAs: currentDate)
+                    }
                 }
                 return filtered.isEmpty ? nil : TrackerCategory(
                     id: category.id,
@@ -255,6 +278,15 @@ final class TrackersViewController: UIViewController {
         }
         
         updateUIForCurrentState()
+    }
+    
+    private func saveCurrentFilter() {
+        UserDefaults.standard.set(currentFilter.rawValue, forKey: "currentFilter")
+    }
+
+    private func loadCurrentFilter() {
+        let rawValue = UserDefaults.standard.integer(forKey: "currentFilter")
+        currentFilter = FilterType(rawValue: rawValue) ?? .all
     }
     
     // MARK: - Alert Methods
