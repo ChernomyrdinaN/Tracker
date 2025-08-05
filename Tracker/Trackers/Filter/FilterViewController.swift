@@ -8,12 +8,15 @@
 import UIKit
 
 final class FilterViewController: UIViewController {
+    
     // MARK: - Properties
     var selectedFilter: FilterType = .all
     var onFilterSelected: ((FilterType) -> Void)?
     
+    private let filters = FilterType.allCases
+    
     // MARK: - UI Elements
-    private let titleLabel: UILabel = {
+    private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Фильтры"
         label.font = .systemFont(ofSize: 16, weight: .medium)
@@ -22,7 +25,7 @@ final class FilterViewController: UIViewController {
         return label
     }()
     
-    private let tableView: UITableView = {
+    private lazy var tableView: UITableView = {
         let table = UITableView()
         table.register(FilterCell.self, forCellReuseIdentifier: FilterCell.reuseIdentifier)
         table.isScrollEnabled = false
@@ -32,19 +35,17 @@ final class FilterViewController: UIViewController {
         return table
     }()
     
-    private let filters = FilterType.allCases
-    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = Colors.white
-        setupUI()
+        setupView()
         setupConstraints()
         setupTableView()
     }
     
     // MARK: - Private Methods
-    private func setupUI() {
+    private func setupView() {
+        view.backgroundColor = Colors.white
         [titleLabel, tableView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
@@ -69,8 +70,8 @@ final class FilterViewController: UIViewController {
     }
 }
 
-// MARK: - UITableViewDataSource & UITableViewDelegate
-extension FilterViewController: UITableViewDataSource, UITableViewDelegate {
+// MARK: - UITableViewDataSource
+extension FilterViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         filters.count
     }
@@ -79,16 +80,10 @@ extension FilterViewController: UITableViewDataSource, UITableViewDelegate {
         guard let cell = tableView.dequeueReusableCell(
             withIdentifier: FilterCell.reuseIdentifier,
             for: indexPath
-        ) as? FilterCell else {
-            return UITableViewCell()
-        }
+        ) as? FilterCell else { return UITableViewCell() }
         
         let filter = filters[indexPath.row]
-        
-        let shouldShowCheckmark = (filter == selectedFilter) &&
-        (filter != .all) &&
-        (filter != .today)
-        
+        let shouldShowCheckmark = (filter == selectedFilter) && (filter != .all) && (filter != .today)
         cell.configure(with: filter, isSelected: shouldShowCheckmark)
         
         cell.separatorInset = indexPath.row == filters.count - 1 ?
@@ -97,7 +92,10 @@ extension FilterViewController: UITableViewDataSource, UITableViewDelegate {
         
         return cell
     }
-    
+}
+
+// MARK: - UITableViewDelegate
+extension FilterViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         75
     }
@@ -107,7 +105,6 @@ extension FilterViewController: UITableViewDataSource, UITableViewDelegate {
         let selectedFilter = filters[indexPath.row]
         self.selectedFilter = selectedFilter
         onFilterSelected?(selectedFilter)
-        UserDefaults.standard.set(selectedFilter.rawValue, forKey: "currentFilter")
         dismiss(animated: true)
     }
 }

@@ -8,7 +8,8 @@
 import UIKit
 
 final class TrackersViewController: UIViewController {
-    // MARK: - Analytics Constants
+    
+    // MARK: - Nested Types
     private enum Analytics {
         static let screenName = "Main"
         static let addTracker = "add_tracker"
@@ -24,6 +25,7 @@ final class TrackersViewController: UIViewController {
     private let categoryStore = TrackerCategoryStore()
     private let recordStore = TrackerRecordStore()
     private let keyboardHandler = KeyboardHandler()
+    private let settingsService: SettingsServiceProtocol = SettingsService()
     
     // MARK: - Properties
     private var currentDate = Date() {
@@ -36,18 +38,10 @@ final class TrackersViewController: UIViewController {
         didSet { collectionView.reloadData() }
     }
     private var filteredCategories: [TrackerCategory] = [] {
-        didSet {
-            collectionView.reloadData()
-        }
+        didSet { collectionView.reloadData() }
     }
-    private var isEmptyState: Bool {
-        filteredCategories.isEmpty
-    }
-    
     private var currentFilter: FilterType = .all {
-        didSet {
-            applyFilter()
-        }
+        didSet { applyFilter() }
     }
     
     // MARK: - UI Elements
@@ -69,13 +63,7 @@ final class TrackersViewController: UIViewController {
         setupDelegates()
         loadInitialData()
         loadCurrentFilter()
-        
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(languageDidChange),
-            name: NSLocale.currentLocaleDidChangeNotification,
-            object: nil
-        )
+        setupObservers()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -111,11 +99,15 @@ final class TrackersViewController: UIViewController {
         filterVC.selectedFilter = currentFilter
         filterVC.onFilterSelected = { [weak self] filter in
             self?.currentFilter = filter
+            self?.saveCurrentFilter()
         }
         present(filterVC, animated: true)
     }
     
     @objc private func datePickerValueChanged(_ sender: UIDatePicker) {
+        if currentFilter == .today {
+            currentFilter = .all
+        }
         currentDate = sender.date
         applyFilter()
     }
@@ -126,7 +118,7 @@ final class TrackersViewController: UIViewController {
         collectionView.reloadData()
     }
     
-    // MARK: - Private Methods
+    // MARK: - UI Setup
     private func setupUI() {
         view.backgroundColor = Colors.white
         
@@ -176,24 +168,48 @@ final class TrackersViewController: UIViewController {
         keyboardHandler.setup(for: self)
     }
     
+    private func setupObservers() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(languageDidChange),
+            name: NSLocale.currentLocaleDidChangeNotification,
+            object: nil
+        )
+    }
+    
+    // MARK: - Data Management
     private func loadInitialData() {
         categories = categoryStore.fetchAllCategories()
         completedTrackers = recordStore.fetchRecords()
+        applyFilter()
     }
     
     private func updateUIForCurrentState() {
-        // Проверяем, есть ли трекеры на текущую дату (без учёта фильтра)
-        let hasTrackers = categories.contains { category in
-            category.trackers.contains { isTrackerVisible($0, for: currentDate) }
+        let hasAnyTrackers = !trackerStore.fetchTrackers().isEmpty
+        let hasTrackersAfterFilter = !filteredCategories.isEmpty
+        
+        if !hasAnyTrackers {
+            errorImageView.isHidden = false
+            errorImageView.image = UIImage(resource: .error1)
+            trackLabel.isHidden = false
+            trackLabel.text = "Что будем отслеживать?"
+            collectionView.isHidden = true
+            filterButton.isHidden = true
         }
-
-        // Заглушка показывается, если после фильтрации ничего не найдено
-        let isEmptyAfterFilter = filteredCategories.isEmpty
-        errorImageView.isHidden = !isEmptyAfterFilter
-        trackLabel.isHidden = !isEmptyAfterFilter
-        collectionView.isHidden = isEmptyAfterFilter
-
-        filterButton.isHidden = !hasTrackers
+        else if !hasTrackersAfterFilter {
+            errorImageView.isHidden = false
+            errorImageView.image = UIImage(resource: .error2)
+            trackLabel.isHidden = false
+            trackLabel.text = "Ничего не найдено"
+            collectionView.isHidden = true
+            filterButton.isHidden = false
+        }
+        else {
+            errorImageView.isHidden = true
+            trackLabel.isHidden = true
+            collectionView.isHidden = false
+            filterButton.isHidden = false
+        }
 
         collectionView.contentInset = UIEdgeInsets(
             top: 0,
@@ -203,21 +219,10 @@ final class TrackersViewController: UIViewController {
         )
     }
     
-    private func isTrackerVisible(_ tracker: Tracker, for date: Date) -> Bool {
-        let calendar = Calendar.current
-        let weekday = calendar.component(.weekday, from: date)
-        return tracker.schedule.contains { $0.calendarIndex == weekday }
-    }
-    
-    private func isTrackerCompletedToday(_ trackerId: UUID) -> Bool {
-        completedTrackers.contains { record in
-            record.trackerId == trackerId &&
-            Calendar.current.isDate(record.date, inSameDayAs: currentDate)
-        }
-    }
-    
     private func applyFilter() {
         let today = Calendar.current.startOfDay(for: Date())
+        categories = categoryStore.fetchAllCategories()
+        completedTrackers = recordStore.fetchRecords()
         
         switch currentFilter {
         case .all:
@@ -231,8 +236,10 @@ final class TrackersViewController: UIViewController {
             }
             
         case .today:
-            currentDate = today
-            datePicker.setDate(today, animated: true)
+            if !Calendar.current.isDate(currentDate, inSameDayAs: today) {
+                currentDate = today
+                datePicker.setDate(today, animated: true)
+            }
             filteredCategories = categories.compactMap { category in
                 let filtered = category.trackers.filter { isTrackerVisible($0, for: today) }
                 return filtered.isEmpty ? nil : TrackerCategory(
@@ -246,7 +253,6 @@ final class TrackersViewController: UIViewController {
             filteredCategories = categories.compactMap { category in
                 let filtered = category.trackers.filter { tracker in
                     guard isTrackerVisible(tracker, for: currentDate) else { return false }
-                    
                     return completedTrackers.contains { record in
                         record.trackerId == tracker.id &&
                         Calendar.current.isDate(record.date, inSameDayAs: currentDate)
@@ -263,7 +269,6 @@ final class TrackersViewController: UIViewController {
             filteredCategories = categories.compactMap { category in
                 let filtered = category.trackers.filter { tracker in
                     guard isTrackerVisible(tracker, for: currentDate) else { return false }
-                    
                     return !completedTrackers.contains { record in
                         record.trackerId == tracker.id &&
                         Calendar.current.isDate(record.date, inSameDayAs: currentDate)
@@ -280,10 +285,24 @@ final class TrackersViewController: UIViewController {
         updateUIForCurrentState()
     }
     
+    // MARK: - Helper Methods
+    private func isTrackerVisible(_ tracker: Tracker, for date: Date) -> Bool {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: date)
+        return tracker.schedule.contains { $0.calendarIndex == weekday }
+    }
+    
+    private func isTrackerCompletedToday(_ trackerId: UUID) -> Bool {
+        completedTrackers.contains { record in
+            record.trackerId == trackerId &&
+            Calendar.current.isDate(record.date, inSameDayAs: currentDate)
+        }
+    }
+    
     private func saveCurrentFilter() {
         UserDefaults.standard.set(currentFilter.rawValue, forKey: "currentFilter")
     }
-
+    
     private func loadCurrentFilter() {
         let rawValue = UserDefaults.standard.integer(forKey: "currentFilter")
         currentFilter = FilterType(rawValue: rawValue) ?? .all
@@ -303,6 +322,7 @@ final class TrackersViewController: UIViewController {
         let deleteAction = UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
             do {
                 try self?.trackerStore.deleteTracker(tracker)
+                self?.loadInitialData()
             } catch {
                 self?.showError(message: "Не удалось удалить трекер")
             }
@@ -349,7 +369,7 @@ final class TrackersViewController: UIViewController {
         present(navVC, animated: true)
     }
     
-    // MARK: - UI Factory Methods
+    // MARK: - Factory Methods
     private func makeTitleLabel() -> UILabel {
         let label = UILabel()
         label.text = NSLocalizedString("Trackers", comment: "Main screen title")
@@ -453,13 +473,11 @@ extension TrackersViewController: UICollectionViewDataSource {
         filteredCategories.count
     }
     
-    func collectionView(_ collectionView: UICollectionView,
-                        numberOfItemsInSection section: Int) -> Int {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         filteredCategories[section].trackers.count
     }
     
-    func collectionView(_ collectionView: UICollectionView,
-                        cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: "TrackerCell",
             for: indexPath
@@ -498,32 +516,32 @@ extension TrackersViewController: UICollectionViewDataSource {
 // MARK: - UICollectionViewDelegateFlowLayout
 extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        sizeForItemAt indexPath: IndexPath) -> CGSize {
+                       layout collectionViewLayout: UICollectionViewLayout,
+                       sizeForItemAt indexPath: IndexPath) -> CGSize {
         CGSize(width: (collectionView.bounds.width - 41) / 2, height: 148)
     }
     
     func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+                       layout collectionViewLayout: UICollectionViewLayout,
+                       minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
         9
     }
     
     func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+                       layout collectionViewLayout: UICollectionViewLayout,
+                       minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         16
     }
     
     func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        insetForSectionAt section: Int) -> UIEdgeInsets {
+                       layout collectionViewLayout: UICollectionViewLayout,
+                       insetForSectionAt section: Int) -> UIEdgeInsets {
         UIEdgeInsets(top: section == 0 ? 12 : 16, left: 16, bottom: 16, right: 16)
     }
     
     func collectionView(_ collectionView: UICollectionView,
-                        viewForSupplementaryElementOfKind kind: String,
-                        at indexPath: IndexPath) -> UICollectionReusableView {
+                       viewForSupplementaryElementOfKind kind: String,
+                       at indexPath: IndexPath) -> UICollectionReusableView {
         guard kind == UICollectionView.elementKindSectionHeader,
               let header = collectionView.dequeueReusableSupplementaryView(
                 ofKind: kind,
@@ -538,8 +556,8 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     }
     
     func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        referenceSizeForHeaderInSection section: Int) -> CGSize {
+                       layout collectionViewLayout: UICollectionViewLayout,
+                       referenceSizeForHeaderInSection section: Int) -> CGSize {
         CGSize(width: collectionView.bounds.width, height: 32)
     }
 }
@@ -547,10 +565,16 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
 // MARK: - TrackerStoreDelegate & TrackerRecordStoreDelegate
 extension TrackersViewController: TrackerStoreDelegate, TrackerRecordStoreDelegate {
     func didUpdateTrackers() {
-        loadInitialData()
+        DispatchQueue.main.async { [weak self] in
+            self?.loadInitialData()
+            self?.applyFilter()
+        }
     }
     
     func didUpdateRecords() {
-        completedTrackers = recordStore.fetchRecords()
+        DispatchQueue.main.async { [weak self] in
+            self?.completedTrackers = self?.recordStore.fetchRecords() ?? []
+            self?.applyFilter()
+        }
     }
 }
