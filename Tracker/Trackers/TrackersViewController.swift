@@ -68,7 +68,7 @@ final class TrackersViewController: UIViewController {
     private lazy var filterButton = makeFilterButton()
     private lazy var datePickerBarButton = UIBarButtonItem(customView: datePicker)
     
-    private var searchFieldTrailingConstraint: NSLayoutConstraint!
+    private var searchFieldTrailingConstraint: NSLayoutConstraint?
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -112,23 +112,20 @@ final class TrackersViewController: UIViewController {
         let filterVC = FilterViewController()
         filterVC.selectedFilter = currentFilter
         filterVC.onFilterSelected = { [weak self] filter in
-            guard let self = self else { return }
-            
-            self.currentFilter = filter
+            self?.currentFilter = filter
             
             if filter == .today {
                 let today = Calendar.current.startOfDay(for: Date())
-                self.datePicker.date = today
-                self.currentDate = today
+                self?.datePicker.date = today
+                self?.currentDate = today
             }
             
-            self.saveCurrentFilter()
-            self.dismiss(animated: true)
+            self?.saveCurrentFilter()
+            self?.dismiss(animated: true)
         }
         
         present(filterVC, animated: true)
     }
-    
     
     @objc private func datePickerValueChanged(_ sender: UIDatePicker) {
         let newDate = sender.date
@@ -185,10 +182,11 @@ final class TrackersViewController: UIViewController {
             view.addSubview($0)
         }
         
-        searchFieldTrailingConstraint = searchTextField.trailingAnchor.constraint(
+        let trailingConstraint = searchTextField.trailingAnchor.constraint(
             equalTo: view.trailingAnchor,
             constant: -16
         )
+        self.searchFieldTrailingConstraint = trailingConstraint
         
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 1),
@@ -198,7 +196,7 @@ final class TrackersViewController: UIViewController {
             searchTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 7),
             searchTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             searchTextField.heightAnchor.constraint(equalToConstant: 36),
-            searchFieldTrailingConstraint,
+            trailingConstraint,
             
             cancelSearchButton.centerYAnchor.constraint(equalTo: searchTextField.centerYAnchor),
             cancelSearchButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -5),
@@ -399,7 +397,7 @@ final class TrackersViewController: UIViewController {
     
     private func hideCancelButton() {
         UIView.animate(withDuration: 0.3) {
-            self.searchFieldTrailingConstraint.constant = -16
+            self.searchFieldTrailingConstraint?.constant = -16
             self.cancelSearchButton.alpha = 0
             self.view.layoutIfNeeded()
         } completion: { _ in
@@ -609,18 +607,25 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
 }
 
 // MARK: - UITextFieldDelegate
-
 extension TrackersViewController: UITextFieldDelegate {
     func textFieldDidBeginEditing(_ textField: UITextField) {
-        UIView.animate(withDuration: 0.3) {
-            self.searchFieldTrailingConstraint.constant = -83 - 5
-            self.cancelSearchButton.isHidden = false
-            self.cancelSearchButton.alpha = 1
-            self.view.layoutIfNeeded()
+        guard textField == searchTextField else { return }
+        
+        let cancelButtonWidth: CGFloat = 83
+        let spacingBetweenFieldAndButton: CGFloat = 5
+        let totalOffset = cancelButtonWidth + spacingBetweenFieldAndButton
+        
+        UIView.animate(withDuration: 0.3) { [weak self] in
+            self?.searchFieldTrailingConstraint?.constant = -totalOffset
+            self?.cancelSearchButton.isHidden = false
+            self?.cancelSearchButton.alpha = 1
+            self?.view.layoutIfNeeded()
         }
     }
     
     func textFieldDidEndEditing(_ textField: UITextField) {
+        guard textField == searchTextField else { return }
+        
         if searchTextField.text?.isEmpty ?? true {
             hideCancelButton()
         }
