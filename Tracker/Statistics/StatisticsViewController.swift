@@ -12,11 +12,8 @@ final class StatisticsViewController: UIViewController {
     // MARK: - Properties
     private let recordStore = TrackerRecordStore()
     private let trackerStore = TrackerStore()
-    
     private var completedTrackersCount: Int = 0 {
-        didSet {
-            updateUIForCurrentState()
-        }
+        didSet { updateUIForCurrentState() }
     }
     
     private lazy var titleLabel = makeTitleLabel()
@@ -35,8 +32,10 @@ final class StatisticsViewController: UIViewController {
         super.viewWillAppear(animated)
         loadStatistics()
     }
-    
-    // MARK: - Private Methods
+}
+
+// MARK: - UI Setup & Configuration
+extension StatisticsViewController {
     private func setupUI() {
         view.backgroundColor = Colors.white
         
@@ -62,6 +61,16 @@ final class StatisticsViewController: UIViewController {
         ])
     }
     
+    private func updateUIForCurrentState() {
+        let hasCompletedTrackers = completedTrackersCount > 0
+        emptyStateView.isHidden = hasCompletedTrackers
+        completedTrackersCard.isHidden = !hasCompletedTrackers
+        completedTrackersCard.update(value: "\(completedTrackersCount)")
+    }
+}
+
+// MARK: - Data Management
+extension StatisticsViewController {
     private func setupDelegates() {
         recordStore.delegate = self
         trackerStore.delegate = self
@@ -72,55 +81,41 @@ final class StatisticsViewController: UIViewController {
         let existingTrackers = trackerStore.fetchTrackers()
         let existingTrackerIDs = Set(existingTrackers.map { $0.id })
         
-        completedTrackersCount = allRecords.filter { record in
-            existingTrackerIDs.contains(record.trackerId)
+        completedTrackersCount = allRecords.filter {
+            existingTrackerIDs.contains($0.trackerId)
         }.count
     }
-    
-    private func updateUIForCurrentState() {
-        if completedTrackersCount > 0 {
-            emptyStateView.isHidden = true
-            completedTrackersCard.isHidden = false
-            completedTrackersCard.update(value: "\(completedTrackersCount)")
-        } else {
-            emptyStateView.isHidden = false
-            completedTrackersCard.isHidden = true
-        }
-    }
-    
-    // MARK: - Factory Methods
+}
+
+// MARK: - Factory Methods
+extension StatisticsViewController {
     private func makeTitleLabel() -> UILabel {
         let label = UILabel()
         label.text = "Статистика"
         label.font = UIFont.systemFont(ofSize: 34, weight: .bold)
         label.textColor = Colors.black
-        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }
     
     private func makeEmptyStateView() -> UIView {
         let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        
-        let imageView = UIImageView()
-        imageView.image = UIImage(resource: .error3)
-        imageView.contentMode = .scaleAspectFit
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        
+        let imageView = UIImageView(image: UIImage(resource: .error3))
         let label = UILabel()
+        
+        imageView.contentMode = .scaleAspectFit
         label.text = "Анализировать пока нечего"
         label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         label.textColor = Colors.black
         label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
         
-        view.addSubview(imageView)
-        view.addSubview(label)
+        [imageView, label].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview($0)
+        }
         
         NSLayoutConstraint.activate([
             imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             imageView.topAnchor.constraint(equalTo: view.topAnchor),
-            
             label.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 8),
             label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             label.bottomAnchor.constraint(equalTo: view.bottomAnchor)
@@ -130,7 +125,7 @@ final class StatisticsViewController: UIViewController {
     }
 }
 
-// MARK: - TrackerStoreDelegate, TrackerRecordStoreDelegate
+// MARK: - Store Delegates
 extension StatisticsViewController: TrackerStoreDelegate, TrackerRecordStoreDelegate {
     func didUpdateTrackers() {
         DispatchQueue.main.async { [weak self] in
@@ -142,72 +137,5 @@ extension StatisticsViewController: TrackerStoreDelegate, TrackerRecordStoreDele
         DispatchQueue.main.async { [weak self] in
             self?.loadStatistics()
         }
-    }
-}
-
-// MARK: - Stat Card View
-final class StatCardView: UIView {
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
-        label.textColor = Colors.black
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let valueLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 34, weight: .bold)
-        label.textColor = Colors.black
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    init(title: String, value: String) {
-        super.init(frame: .zero)
-        setupUI()
-        configure(title: title, value: value)
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func setupUI() {
-        backgroundColor = Colors.white
-        layer.cornerRadius = 16
-        layer.borderWidth = 1
-        layer.borderColor = Colors.blue.cgColor
-        translatesAutoresizingMaskIntoConstraints = false
-        
-        let subviews = [valueLabel, titleLabel]
-        subviews.forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            addSubview($0)
-        }
-        
-        NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: 90),
-            
-            // Располагаем valueLabel сверху
-            valueLabel.topAnchor.constraint(equalTo: topAnchor, constant: 12),
-            valueLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
-            valueLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
-            
-            // Располагаем titleLabel под valueLabel с отступом 7 пунктов
-            titleLabel.topAnchor.constraint(equalTo: valueLabel.bottomAnchor, constant: 7),
-            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
-            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
-            titleLabel.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -12)
-        ])
-    }
-    
-    func configure(title: String, value: String) {
-        titleLabel.text = title
-        valueLabel.text = value
-    }
-    
-    func update(value: String) {
-        valueLabel.text = value
     }
 }
