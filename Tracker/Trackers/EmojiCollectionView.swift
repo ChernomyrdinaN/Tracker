@@ -8,7 +8,16 @@ import UIKit
 
 final class EmojiCollectionView: UICollectionView {
     // MARK: - Properties
-    private(set) var selectedEmoji: String?
+    
+    var selectedEmoji: String? {
+        didSet {
+            reloadData()
+            if let selectedEmoji {
+                onEmojiSelected?(selectedEmoji)
+            }
+        }
+    }
+    
     var onEmojiSelected: ((String) -> Void)?
     
     private let emojis = [

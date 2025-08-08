@@ -65,12 +65,15 @@ final class TrackerCell: UICollectionViewCell {
     
     // MARK: - Public Properties
     var onPlusButtonTapped: ((UUID, Date, Bool) -> Void)?
+    var onEditTapped: ((UUID) -> Void)?
+    var onDeleteTapped: ((UUID) -> Void)?
     
     // MARK: - Initialization
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
         setupConstraints()
+        setupInteraction()
     }
     
     required init?(coder: NSCoder) {
@@ -137,6 +140,39 @@ final class TrackerCell: UICollectionViewCell {
         ])
     }
     
+    private func setupInteraction() {
+        let bgView = UIView()
+        bgView.backgroundColor = .clear
+        selectedBackgroundView = bgView
+        
+        let interaction = UIContextMenuInteraction(delegate: self)
+        containerView.addInteraction(interaction)
+    }
+    
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let containerPoint = convert(point, to: containerView)
+        if containerView.bounds.contains(containerPoint) {
+            return containerView
+        }
+        
+        let plusButtonPoint = convert(point, to: plusButton)
+        if plusButton.bounds.contains(plusButtonPoint) {
+            return plusButton
+        }
+        
+        return nil
+    }
+    
+    override var isHighlighted: Bool {
+        didSet {
+            UIView.animate(withDuration: 0.2) {
+                self.containerView.alpha = self.isHighlighted ? 0.7 : 1.0
+                self.containerView.transform = self.isHighlighted ?
+                CGAffineTransform(scaleX: 0.96, y: 0.96) : .identity
+            }
+        }
+    }
+    
     private func updatePlusButton() {
         let imageName = isCompletedToday ? "checkmark" : "plus"
         plusButton.setImage(UIImage(systemName: imageName), for: .normal)
@@ -149,18 +185,10 @@ final class TrackerCell: UICollectionViewCell {
     }
     
     private func formattedDaysCount(_ count: Int) -> String {
-        let remainder = count % 10
-        let remainder100 = count % 100
-        
-        if remainder100 >= 11 && remainder100 <= 19 {
-            return "\(count) дней"
-        } else if remainder == 1 {
-            return "\(count) день"
-        } else if remainder >= 2 && remainder <= 4 {
-            return "\(count) дня"
-        } else {
-            return "\(count) дней"
-        }
+        return String.localizedStringWithFormat(
+            NSLocalizedString("days_count", comment: "Number of days completed"),
+            count
+        )
     }
     
     // MARK: - Actions
@@ -173,5 +201,38 @@ final class TrackerCell: UICollectionViewCell {
         
         updatePlusButton()
         onPlusButtonTapped?(trackerId, currentDate, isCompletedToday)
+    }
+}
+
+// MARK: - UIContextMenuInteractionDelegate
+extension TrackerCell: UIContextMenuInteractionDelegate {
+    func contextMenuInteraction(
+        _ interaction: UIContextMenuInteraction,
+        configurationForMenuAtLocation location: CGPoint
+    ) -> UIContextMenuConfiguration? {
+        guard let trackerId = trackerId else { return nil }
+        
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
+            let editAction = UIAction(title: "Редактировать") { _ in
+                self?.onEditTapped?(trackerId)
+            }
+            
+            let deleteAction = UIAction(title: "Удалить", attributes: .destructive) { _ in
+                self?.onDeleteTapped?(trackerId)
+            }
+            
+            return UIMenu(title: "", children: [editAction, deleteAction])
+        }
+    }
+    
+    func contextMenuInteraction(
+        _ interaction: UIContextMenuInteraction,
+        willDisplayMenuFor configuration: UIContextMenuConfiguration,
+        animator: UIContextMenuInteractionAnimating?
+    ) {
+        isHighlighted = true
+        animator?.addCompletion { [weak self] in
+            self?.isHighlighted = false
+        }
     }
 }
