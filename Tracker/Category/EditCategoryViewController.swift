@@ -9,11 +9,13 @@ import UIKit
 
 final class EditCategoryViewController: BaseCategoryViewController {
     // MARK: - Properties
+    var onSave: ((UUID, String) -> Void)?
+    private let categoryId: UUID
     private let currentCategoryName: String
-    var onSave: ((String) -> Void)?
     
     // MARK: - Lifecycle
-    init(currentName: String) {
+    init(categoryId: UUID, currentName: String) {
+        self.categoryId = categoryId
         self.currentCategoryName = currentName
         super.init(nibName: nil, bundle: nil)
         titleLabel.text = "Редактирование категории"
@@ -32,7 +34,7 @@ final class EditCategoryViewController: BaseCategoryViewController {
     @objc override func doneButtonTapped() {
         guard let categoryName = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
               !categoryName.isEmpty else { return }
-        onSave?(categoryName)
+        onSave?(categoryId, categoryName)
         dismiss(animated: true)
     }
 }

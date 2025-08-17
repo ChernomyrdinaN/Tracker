@@ -54,6 +54,13 @@ final class TrackerCategoryStore {
         }
         
         categoryToUpdate.title = newTitle
+        
+        if let trackers = categoryToUpdate.trackers as? Set<TrackerCoreData> {
+            for tracker in trackers {
+                tracker.category = categoryToUpdate
+            }
+        }
+        
         saveContext()
     }
     

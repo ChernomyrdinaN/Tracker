@@ -8,12 +8,13 @@
 import CoreData
 import UIKit
 
-// MARK: - Protocol
+// MARK: - TrackerStoreDelegate
 protocol TrackerStoreDelegate: AnyObject {
     func didUpdateTrackers()
 }
 
 final class TrackerStore: NSObject {
+    
     // MARK: - Properties
     weak var delegate: TrackerStoreDelegate?
     private let context: NSManagedObjectContext
@@ -57,6 +58,46 @@ final class TrackerStore: NSObject {
     func fetchTrackers() -> [Tracker] {
         guard let trackerObjects = fetchedResultsController?.fetchedObjects else { return [] }
         return trackerObjects.compactMap { createTracker(from: $0) }
+    }
+    
+    func updateTracker(_ tracker: Tracker, in category: TrackerCategory) throws {
+        let request = TrackerCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
+        
+        guard let trackerEntity = try context.fetch(request).first else {
+            throw NSError(domain: "Tracker", code: 404, userInfo: [NSLocalizedDescriptionKey: "Трекер не найден"])
+        }
+        
+        let uniquenessRequest = TrackerCoreData.fetchRequest()
+        uniquenessRequest.predicate = NSPredicate(
+            format: "name == %@ AND category.id == %@ AND id != %@",
+            tracker.name,
+            category.id as CVarArg,
+            tracker.id as CVarArg
+        )
+        
+        if (try? context.count(for: uniquenessRequest)) ?? 0 > 0 {
+            throw NSError(
+                domain: "Validation",
+                code: 409,
+                userInfo: [NSLocalizedDescriptionKey: "Трекер с таким именем уже существует в категории"]
+            )
+        }
+        
+        trackerEntity.name = tracker.name
+        trackerEntity.emoji = tracker.emoji
+        trackerEntity.color = UIColor(named: tracker.color)
+        trackerEntity.colorAssetName = tracker.color
+        trackerEntity.schedule = tracker.schedule as NSObject
+        
+        let categoryRequest: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
+        categoryRequest.predicate = NSPredicate(format: "id == %@", category.id as CVarArg)
+        
+        if let categoryEntity = try? context.fetch(categoryRequest).first {
+            trackerEntity.category = categoryEntity
+        }
+        
+        saveContext()
     }
     
     func deleteTracker(_ tracker: Tracker) throws {

@@ -13,15 +13,15 @@ final class CategorySelectionViewController: UIViewController {
     private let viewModel: CategoriesViewModel
     
     // MARK: - Init
-       init(viewModel: CategoriesViewModel) { 
-           self.viewModel = viewModel
-           super.init(nibName: nil, bundle: nil)
-       }
-       
-       required init?(coder: NSCoder) {
-           fatalError("init(coder:) has not been implemented")
-       }
-
+    init(viewModel: CategoriesViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     // MARK: - UI Elements
     private lazy var titleLabel = makeTitleLabel()
     private lazy var errorImageView = makeErrorImageView()
@@ -108,10 +108,15 @@ final class CategorySelectionViewController: UIViewController {
     
     private func showEditAlert(for index: Int) {
         let category = viewModel.categories[index]
-        let editVC = EditCategoryViewController(currentName: category.title)
-        editVC.onSave = { [weak self] newName in
+        let editVC = EditCategoryViewController(
+            categoryId: category.id,
+            currentName: category.title
+        )
+        
+        editVC.onSave = { [weak self] categoryId, newName in
             self?.viewModel.updateCategory(at: index, newTitle: newName)
         }
+        
         present(UINavigationController(rootViewController: editVC), animated: true)
     }
     

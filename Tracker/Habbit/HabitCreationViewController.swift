@@ -4,36 +4,36 @@
 //
 //  Created by Наталья Черномырдина on 19.06.2025.
 //
-
 import UIKit
 
-final class HabitCreationViewController: UIViewController {
+class HabitCreationViewController: UIViewController {
     // MARK: - Properties
-    private var selectedCategory: TrackerCategory?
-    private var selectedEmoji: String?
-    private var selectedColor: UIColor?
-    private var selectedSchedule: Set<WeekDay> = []
-    private let keyboardHandler = KeyboardHandler()
-    var onTrackerCreated: ((Tracker) -> Void)?
-    
-    private let trackerStore = TrackerStore()
-    
-    // MARK: - UI Elements
-    private lazy var titleLabel = makeTitleLabel()
-    private lazy var nameTextField = makeNameTextField()
-    private lazy var errorLabel = makeErrorLabel()
-    private lazy var categoryButton = makeCategoryButton()
-    private lazy var scheduleButton = makeScheduleButton()
-    private lazy var cancelButton = makeCancelButton()
-    private lazy var createButton = makeCreateButton()
-    private lazy var buttonsStack = makeButtonsStack()
-    private lazy var scrollView = makeScrollView()
-    private lazy var contentView = makeContentView()
-    private lazy var emojiLabel = makeEmojiLabel()
-    private lazy var emojiCollectionView = EmojiCollectionView()
-    private lazy var colorLabel = makeColorLabel()
-    private lazy var colorCollectionView = ColorCollectionView()
-    
+        var selectedCategory: TrackerCategory?
+        var selectedEmoji: String?
+        var selectedColor: UIColor?
+        var selectedSchedule: Set<WeekDay> = []
+        var onTrackerCreated: ((Tracker) -> Void)?
+        
+        private let keyboardHandler = KeyboardHandler()
+        private let trackerStore = TrackerStore()
+        
+        // MARK: - UI Elements
+        lazy var titleLabel = makeTitleLabel()
+        lazy var nameTextField = makeNameTextField()
+        lazy var emojiCollectionView = EmojiCollectionView()
+        lazy var colorCollectionView = ColorCollectionView()
+        lazy var createButton = makeCreateButton()
+        
+        private lazy var errorLabel = makeErrorLabel()
+        private lazy var categoryButton = makeCategoryButton()
+        private lazy var scheduleButton = makeScheduleButton()
+        private lazy var cancelButton = makeCancelButton()
+        private lazy var buttonsStack = makeButtonsStack()
+        private lazy var scrollView = makeScrollView()
+        private lazy var contentView = makeContentView()
+        private lazy var emojiLabel = makeEmojiLabel()
+        private lazy var colorLabel = makeColorLabel()
+        
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -42,8 +42,44 @@ final class HabitCreationViewController: UIViewController {
         setupActions()
         setupDelegates()
     }
+        
+    // MARK: - Update Methods
+    func updateCreateButtonState() {
+        let isFormValid = !(nameTextField.text?.isEmpty ?? true)
+        && (nameTextField.text?.count ?? 0) <= Constants.maxHabitNameLength
+        && selectedCategory != nil
+        && !selectedSchedule.isEmpty
+        && selectedEmoji != nil
+        && selectedColor != nil
+        
+        createButton.isEnabled = isFormValid
+        createButton.backgroundColor = isFormValid ? Colors.black : Colors.gray
+    }
     
-    // MARK: - Setup Methods
+    func updateScheduleButtonTitle() {
+        guard let stack = scheduleButton.subviews.first?.subviews.first as? UIStackView,
+              let valueLabel = stack.arrangedSubviews.last as? UILabel else { return }
+        
+        if selectedSchedule.isEmpty {
+            valueLabel.text = nil
+        } else if selectedSchedule.count == WeekDay.allCases.count {
+            valueLabel.text = "Каждый день"
+        } else {
+            let shortNames = selectedSchedule.sorted(by: { $0.calendarIndex < $1.calendarIndex }).map { $0.shortName }
+            valueLabel.text = shortNames.joined(separator: ", ")
+        }
+    }
+    
+    func updateCategoryButtonTitle() {
+        guard let container = categoryButton.subviews.first,
+              let stack = container.subviews.first as? UIStackView,
+              stack.arrangedSubviews.count > 1,
+              let valueLabel = stack.arrangedSubviews[1] as? UILabel else { return }
+        
+        valueLabel.text = selectedCategory?.title
+    }
+    
+    // MARK: - Private Methods
     private func setupUI() {
         [titleLabel, scrollView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -53,8 +89,8 @@ final class HabitCreationViewController: UIViewController {
         scrollView.addSubview(contentView)
         
         [nameTextField, errorLabel, categoryButton, scheduleButton,
-         emojiLabel, emojiCollectionView, colorLabel, colorCollectionView,
-         buttonsStack].forEach {
+            emojiLabel, emojiCollectionView, colorLabel, colorCollectionView,
+            buttonsStack].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             contentView.addSubview($0)
         }
@@ -317,42 +353,6 @@ final class HabitCreationViewController: UIViewController {
         return label
     }
     
-    // MARK: - Update Methods
-    private func updateCreateButtonState() {
-        let isFormValid = !(nameTextField.text?.isEmpty ?? true)
-        && (nameTextField.text?.count ?? 0) <= Constants.maxHabitNameLength
-        && selectedCategory != nil
-        && !selectedSchedule.isEmpty
-        && selectedEmoji != nil
-        && selectedColor != nil
-        
-        createButton.isEnabled = isFormValid
-        createButton.backgroundColor = isFormValid ? Colors.black : Colors.gray
-    }
-    
-    private func updateScheduleButtonTitle() {
-        guard let stack = scheduleButton.subviews.first?.subviews.first as? UIStackView,
-              let valueLabel = stack.arrangedSubviews.last as? UILabel else { return }
-        
-        if selectedSchedule.isEmpty {
-            valueLabel.text = nil
-        } else if selectedSchedule.count == WeekDay.allCases.count {
-            valueLabel.text = "Каждый день"
-        } else {
-            let shortNames = selectedSchedule.sorted(by: { $0.calendarIndex < $1.calendarIndex }).map { $0.shortName }
-            valueLabel.text = shortNames.joined(separator: ", ")
-        }
-    }
-    
-    private func updateCategoryButtonTitle() {
-        guard let container = categoryButton.subviews.first,
-              let stack = container.subviews.first as? UIStackView,
-              stack.arrangedSubviews.count > 1,
-              let valueLabel = stack.arrangedSubviews[1] as? UILabel else { return }
-        
-        valueLabel.text = selectedCategory?.title
-    }
-    
     // MARK: - Actions
     @objc private func textFieldDidChange(_ textField: UITextField) {
         let text = textField.text ?? ""
@@ -371,32 +371,27 @@ final class HabitCreationViewController: UIViewController {
         updateCreateButtonState()
     }
     
-    @objc private func createButtonTapped() {
-        guard let name = nameTextField.text,
-              let category = selectedCategory,
-              let emoji = selectedEmoji,
-              let color = selectedColor else {
-            return
+    @objc dynamic func createButtonTapped() {
+            guard let name = nameTextField.text,
+                  let selectedCategory = selectedCategory else { return }
+            
+            let newTracker = Tracker(
+                id: UUID(),
+                name: name,
+                color: Colors.colorName(for: selectedColor!) ?? "Color selection 1",
+                emoji: selectedEmoji!,
+                schedule: Array(selectedSchedule),
+                colorAssetName: Colors.colorName(for: selectedColor!) ?? "Color selection 1"
+            )
+            
+            do {
+                try trackerStore.addTracker(newTracker, to: selectedCategory)
+                dismiss(animated: true)
+            } catch {
+                print("Ошибка при создании трекера: \(error.localizedDescription)")
+            }
         }
         
-        let colorName = Colors.colorName(for: color) ?? "Color selection 1"
-        let newTracker = Tracker(
-            id: UUID(),
-            name: name,
-            color: colorName,
-            emoji: emoji,
-            schedule: Array(selectedSchedule),
-            colorAssetName: colorName
-        )
-        
-        do {
-            try trackerStore.addTracker(newTracker, to: category)
-            dismiss(animated: true)
-        } catch {
-            print("Ошибка при создании трекера: \(error.localizedDescription)")
-        }
-    }
-    
     @objc private func categoryButtonTapped() {
         let categoriesViewModel = CategoriesViewModel()
         
