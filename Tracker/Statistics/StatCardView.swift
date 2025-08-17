@@ -10,10 +10,42 @@ import UIKit
 final class StatCardView: UIView {
     
     // MARK: - UI Elements
-    private let titleLabel = UILabel()
-    private let valueLabel = UILabel()
-    private let gradientLayer = CAGradientLayer()
-    private let shapeLayer = CAShapeLayer()
+    private lazy var titleLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
+        label.textColor = Colors.black
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private lazy var valueLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 34, weight: .bold)
+        label.textColor = Colors.black
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private lazy var gradientLayer: CAGradientLayer = {
+        let layer = CAGradientLayer()
+        layer.colors = [
+            UIColor(hex: "#007BFA").cgColor,
+            UIColor(hex: "#46E69D").cgColor,
+            UIColor(hex: "#FD4C49").cgColor
+        ]
+        layer.startPoint = CGPoint(x: 1, y: 0.5)
+        layer.endPoint = CGPoint(x: 0, y: 0.5)
+        layer.mask = shapeLayer
+        return layer
+    }()
+    
+    private lazy var shapeLayer: CAShapeLayer = {
+        let layer = CAShapeLayer()
+        layer.lineWidth = 1
+        layer.fillColor = nil
+        layer.strokeColor = UIColor.black.cgColor
+        return layer
+    }()
     
     // MARK: - Init
     init(title: String, value: String) {
@@ -51,44 +83,22 @@ extension StatCardView {
         layer.masksToBounds = true
         
         setupGradientBorder()
-        configureLabels()
+        addSubviews()
         setupConstraints()
     }
     
     private func setupGradientBorder() {
-        gradientLayer.colors = [
-            UIColor(hex: "#007BFA").cgColor,
-            UIColor(hex: "#46E69D").cgColor,
-            UIColor(hex: "#FD4C49").cgColor
-        ]
-        gradientLayer.startPoint = CGPoint(x: 1, y: 0.5)
-        gradientLayer.endPoint = CGPoint(x: 0, y: 0.5)
-        gradientLayer.mask = shapeLayer
-    
-        shapeLayer.lineWidth = 1
-        shapeLayer.fillColor = nil
-        shapeLayer.strokeColor = UIColor.black.cgColor
-        
         layer.addSublayer(gradientLayer)
     }
     
     private func updateGradientBorder() {
         gradientLayer.frame = bounds
-        
         let path = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius)
         shapeLayer.path = path.cgPath
     }
     
-    private func configureLabels() {
-        titleLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
-        titleLabel.textColor = Colors.black
-        valueLabel.font = UIFont.systemFont(ofSize: 34, weight: .bold)
-        valueLabel.textColor = Colors.black
-        
-        [valueLabel, titleLabel].forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            addSubview($0)
-        }
+    private func addSubviews() {
+        [valueLabel, titleLabel].forEach { addSubview($0) }
     }
     
     private func setupConstraints() {
